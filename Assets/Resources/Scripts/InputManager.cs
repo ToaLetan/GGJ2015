@@ -27,6 +27,8 @@ public struct GamepadControls
     public string dPadVertical;
 
     public string controllerIdentifier;
+
+    public int controllerNumber;
 }
 
 public class InputManager
@@ -60,8 +62,8 @@ public class InputManager
     public delegate void ButtonHoldEvent(List<string> buttonsHeld);
     public delegate void ButtonReleaseEvent(List<string> buttonsReleased);
 
-    public delegate void AxisEvent(Vector2 axisValues);
-    public delegate void TriggerEvent(float triggerValue);
+    public delegate void AxisEvent(int controllerNum, Vector2 axisValues);
+    public delegate void TriggerEvent(int controllerNum, float triggerValue);
 
     public event ButtonPressEvent Button_Pressed;
     public event ButtonHoldEvent Button_Held;
@@ -92,7 +94,8 @@ public class InputManager
     {
         for (int i = 0; i < ControllerArray.Length; i++)
         {
-            ControllerArray[i].controllerIdentifier = CONTROLLER_NAME + (i+1) + " ";
+            ControllerArray[i].controllerNumber = i + 1;
+            ControllerArray[i].controllerIdentifier = CONTROLLER_NAME + ControllerArray[i].controllerNumber + " ";
             ControllerArray[i].buttonA = ControllerArray[i].controllerIdentifier + BUTTON_A;
             ControllerArray[i].buttonB = ControllerArray[i].controllerIdentifier + BUTTON_B;
             ControllerArray[i].buttonX = ControllerArray[i].controllerIdentifier + BUTTON_X;
@@ -120,8 +123,6 @@ public class InputManager
     // Update is called once per frame
     public void Update () 
     {
-        Debug.Log(ControllerArray[0].buttonA);
-
         UpdateInput();
     }
 
@@ -168,28 +169,28 @@ public class InputManager
             List<string> allButtonsHeld = new List<string>();
 
             if (Input.GetButton(ControllerArray[i].buttonA))
-                allButtonsPressed.Add(ControllerArray[i].buttonA);
+                allButtonsHeld.Add(ControllerArray[i].buttonA);
             if (Input.GetButton(ControllerArray[i].buttonB))
-                allButtonsPressed.Add(ControllerArray[i].buttonB);
+                allButtonsHeld.Add(ControllerArray[i].buttonB);
             if (Input.GetButton(ControllerArray[i].buttonX))
-                allButtonsPressed.Add(ControllerArray[i].buttonX);
+                allButtonsHeld.Add(ControllerArray[i].buttonX);
             if (Input.GetButton(ControllerArray[i].buttonY))
-                allButtonsPressed.Add(ControllerArray[i].buttonY);
+                allButtonsHeld.Add(ControllerArray[i].buttonY);
 
             if (Input.GetButton(ControllerArray[i].leftBumper))
-                allButtonsPressed.Add(ControllerArray[i].leftBumper);
+                allButtonsHeld.Add(ControllerArray[i].leftBumper);
             if (Input.GetButton(ControllerArray[i].rightBumper))
-                allButtonsPressed.Add(ControllerArray[i].rightBumper);
+                allButtonsHeld.Add(ControllerArray[i].rightBumper);
 
             if (Input.GetButton(ControllerArray[i].startButton))
-                allButtonsPressed.Add(ControllerArray[i].startButton);
+                allButtonsHeld.Add(ControllerArray[i].startButton);
             if (Input.GetButton(ControllerArray[i].backButton))
-                allButtonsPressed.Add(ControllerArray[i].backButton);
+                allButtonsHeld.Add(ControllerArray[i].backButton);
 
             if (Input.GetButton(ControllerArray[i].leftThumbstickClick))
-                allButtonsPressed.Add(ControllerArray[i].leftThumbstickClick);
+                allButtonsHeld.Add(ControllerArray[i].leftThumbstickClick);
             if (Input.GetButton(ControllerArray[i].rightThumbstickClick))
-                allButtonsPressed.Add(ControllerArray[i].rightThumbstickClick);
+                allButtonsHeld.Add(ControllerArray[i].rightThumbstickClick);
 
             if (allButtonsHeld.Count > 0)
             {
@@ -202,28 +203,28 @@ public class InputManager
             List<string> allButtonsReleased = new List<string>();
 
             if (!Input.GetButton(ControllerArray[i].buttonA))
-                allButtonsPressed.Add(ControllerArray[i].buttonA);
+                allButtonsReleased.Add(ControllerArray[i].buttonA);
             if (!Input.GetButton(ControllerArray[i].buttonB))
-                allButtonsPressed.Add(ControllerArray[i].buttonB);
+                allButtonsReleased.Add(ControllerArray[i].buttonB);
             if (!Input.GetButton(ControllerArray[i].buttonX))
-                allButtonsPressed.Add(ControllerArray[i].buttonX);
+                allButtonsReleased.Add(ControllerArray[i].buttonX);
             if (!Input.GetButton(ControllerArray[i].buttonY))
-                allButtonsPressed.Add(ControllerArray[i].buttonY);
+                allButtonsReleased.Add(ControllerArray[i].buttonY);
 
             if (!Input.GetButton(ControllerArray[i].leftBumper))
-                allButtonsPressed.Add(ControllerArray[i].leftBumper);
+                allButtonsReleased.Add(ControllerArray[i].leftBumper);
             if (!Input.GetButton(ControllerArray[i].rightBumper))
-                allButtonsPressed.Add(ControllerArray[i].rightBumper);
+                allButtonsReleased.Add(ControllerArray[i].rightBumper);
 
             if (!Input.GetButton(ControllerArray[i].startButton))
-                allButtonsPressed.Add(ControllerArray[i].startButton);
+                allButtonsReleased.Add(ControllerArray[i].startButton);
             if (!Input.GetButton(ControllerArray[i].backButton))
-                allButtonsPressed.Add(ControllerArray[i].backButton);
+                allButtonsReleased.Add(ControllerArray[i].backButton);
 
             if (!Input.GetButton(ControllerArray[i].leftThumbstickClick))
-                allButtonsPressed.Add(ControllerArray[i].leftThumbstickClick);
+                allButtonsReleased.Add(ControllerArray[i].leftThumbstickClick);
             if (!Input.GetButton(ControllerArray[i].rightThumbstickClick))
-                allButtonsPressed.Add(ControllerArray[i].rightThumbstickClick);
+                allButtonsReleased.Add(ControllerArray[i].rightThumbstickClick);
 
             if (allButtonsReleased.Count > 0)
             {
@@ -234,24 +235,24 @@ public class InputManager
 
             //========================== Thumbstick and Trigger Axes ==========================
             if (Left_Thumbstick_Axis != null)
-                Left_Thumbstick_Axis(new Vector2(Input.GetAxis(ControllerArray[i].leftThumbstickHorizontal), Input.GetAxis(ControllerArray[i].leftThumbstickVertical) ) );
+                Left_Thumbstick_Axis(ControllerArray[i].controllerNumber, new Vector2(Input.GetAxis(ControllerArray[i].leftThumbstickHorizontal), Input.GetAxis(ControllerArray[i].leftThumbstickVertical) ) );
 
             if (Right_Thumbstick_Axis != null)
-                Right_Thumbstick_Axis(new Vector2(Input.GetAxis(ControllerArray[i].rightThumbstickHorizontal), Input.GetAxis(ControllerArray[i].rightThumbstickVertical) ) );
+                Right_Thumbstick_Axis(ControllerArray[i].controllerNumber, new Vector2(Input.GetAxis(ControllerArray[i].rightThumbstickHorizontal), Input.GetAxis(ControllerArray[i].rightThumbstickVertical)));
 
             if (DPad_Axis != null)
-                DPad_Axis(new Vector2(Input.GetAxis(ControllerArray[i].dPadHorizontal), Input.GetAxis(ControllerArray[i].dPadVertical) ) );
+                DPad_Axis(ControllerArray[i].controllerNumber, new Vector2(Input.GetAxis(ControllerArray[i].dPadHorizontal), Input.GetAxis(ControllerArray[i].dPadVertical)));
 
             if (Left_Trigger_Axis != null)
             {
                 if (Input.GetAxis(ControllerArray[i].leftRightTriggers) < 0)
-                    Left_Trigger_Axis(Input.GetAxis(ControllerArray[i].leftRightTriggers) );
+                    Left_Trigger_Axis(ControllerArray[i].controllerNumber, Input.GetAxis(ControllerArray[i].leftRightTriggers));
             }
 
             if (Right_Trigger_Axis != null)
             {
                 if (Input.GetAxis(ControllerArray[i].leftRightTriggers) > 0)
-                    Right_Trigger_Axis(Input.GetAxis(ControllerArray[i].leftRightTriggers));
+                    Right_Trigger_Axis(ControllerArray[i].controllerNumber, Input.GetAxis(ControllerArray[i].leftRightTriggers));
             }
             //=================================================================================
         }
