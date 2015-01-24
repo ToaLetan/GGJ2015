@@ -54,6 +54,7 @@
     <Compile Include="Assets\Resources\Scripts\GameManager.cs" />
     <Compile Include="Assets\Resources\Scripts\InputManager.cs" />
     <Compile Include="Assets\Resources\Scripts\PlayerScript.cs" />
+    <Compile Include="Assets\Resources\Scripts\TentacleModifier.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2012\UnityVS.CSharp.targets" />
 </Project>
