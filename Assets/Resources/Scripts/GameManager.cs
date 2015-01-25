@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour 
 {
-    public const float ROUND_LENGTH = 2; //Rounds are 1 minute 30 seconds.
+    public const float ROUND_LENGTH = 90; //Rounds are 1 minute 30 seconds.
     public const float NUM_ROUNDS = 3; //Play up to 3 rounds max.
 
-    private const float ICON_OFFSET = 0.25f;
+    private const float ICON_OFFSET = 0.22f;
     private const float INTRO_TIME = 1.0f;
     private const float SLIDER_MOVE_SPEED = 1.5f;
 
@@ -31,6 +31,7 @@ public class GameManager : MonoBehaviour
 
     private bool isGamePaused = false;
     private bool isSliderAtDestination = false;
+    private bool isGameOver = false;
 
     private InputManager inputManager = null;
 
@@ -50,6 +51,12 @@ public class GameManager : MonoBehaviour
         set { isGamePaused = value; }
     }
 
+    public bool IsGameOver
+    {
+        get { return isGameOver; }
+        set { isGameOver = value; }
+    }
+
 	// Use this for initialization
 	void Start () 
     {
@@ -66,15 +73,14 @@ public class GameManager : MonoBehaviour
 
         sliderUI = GameObject.Find("UI_Slider");
         sliderStartPos = sliderUI.transform.position;
-        sliderDestination = new Vector3(-0.74f, 0.092f, 0);
+
+        roundIntroTimer = new Timer(INTRO_TIME, true);
+        ResetIntro();
 
         currentRound = 1; //Obviously we start at the first round.
 
         gameTimer = new Timer(ROUND_LENGTH); //TODO: MAKE A "ROUND START!" THING BEFORE THIS RUNS
         gameTimer.OnTimerComplete += OnRoundOver;
-
-        roundIntroTimer = new Timer(INTRO_TIME, true);
-        roundIntroTimer.OnTimerComplete += PlayRoundIntro;
 
         isGamePaused = true;
 	}
@@ -82,9 +88,10 @@ public class GameManager : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
     {
+        inputManager.Update();
+
         if (isGamePaused == false)
         {
-            inputManager.Update();
             gameTimer.Update();
         }
 
@@ -126,9 +133,23 @@ public class GameManager : MonoBehaviour
         playerScores[1] = 0;
 
         //Prepare the next round if it's not over.
-        if (currentRound > NUM_ROUNDS)
+        if (currentRound < NUM_ROUNDS)
         {
-            gameTimer.ResetTimer(true); //TODO: NOT START INSTANTLY.
+            //Increment the round number, reset timers, reset the necessary things for playing the intro and run the intro again.
+            currentRound++;
+
+            gameTimer.ResetTimer();
+            GameTimer gameTimeDisplay = GameObject.Find("Timer").GetComponent<GameTimer>();
+            gameTimeDisplay.UpdateDisplay(true);
+
+            ResetIntro();
+
+            isGamePaused = true;
+        }
+        else //The game is over, play the ending.
+        {
+            isGameOver = true;
+            DisplayWinner();
         }
 
     }
@@ -214,7 +235,67 @@ public class GameManager : MonoBehaviour
 
                 StartRound(); //Now we can actually start, jesus christ dude.
             }   
+        }  
+    }
+
+    private void ResetIntro()
+    {
+        roundIntroTimer.ResetTimer(true);
+
+        roundIntroTimer.OnTimerComplete += PlayRoundIntro;
+
+        sliderDestination = new Vector3(-0.74f, 0.092f, 0);
+        isSliderAtDestination = false;
+        introPhase = 0;
+
+        GameObject sliderText = sliderUI.transform.FindChild("Slider_Text").gameObject;
+        sliderText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Ready");
+    }
+
+    private void DisplayWinner()
+    {
+        //Reset the slider so it moves.
+        sliderDestination = new Vector3(-0.74f, 0.092f, 0);
+        isSliderAtDestination = false;
+
+        //Change the slider text to say "Player", move it over to leave some room.
+        GameObject sliderText = sliderUI.transform.FindChild("Slider_Text").gameObject;
+        sliderText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Player");
+        Vector3 initialSliderTextPos = sliderText.transform.position; //Saving this in case of a tie, don't have to move the text.
+        sliderText.transform.position += new Vector3(-ICON_OFFSET * 2, 0, 0);
+
+        //Prepare the position for the player num.
+        Vector3 winnerNumPos = sliderText.transform.position;
+        winnerNumPos.x += ICON_OFFSET * 1.75f;
+
+        //Prepare the display for the winner's number.
+        GameObject winnerNumText = GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/Winner_Num"), winnerNumPos, Quaternion.identity) as GameObject;
+        winnerNumText.transform.parent = sliderUI.transform;
+
+        //Prepare the position for the "wins!" text.
+        Vector3 winGameText = winnerNumText.transform.position;
+        winGameText.x += ICON_OFFSET * 1.75f;
+
+        //Create the "wins!" text.
+        GameObject winsText = GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/Text_Winner"), winGameText, Quaternion.identity) as GameObject;
+        winsText.transform.parent = sliderUI.transform;
+
+        if (playerWins[0] > playerWins[1] ) //Player 1 won the game
+        {
+            winnerNumText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Number_1");
         }
-        
+        else if (playerWins[0] < playerWins[1]) //Player 2 won the game
+        {
+            winnerNumText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Number_2");
+        }
+        else if (playerWins[0] == playerWins[1]) //Holy shit it's a tie!!!
+        {
+            sliderText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Tied");
+            sliderText.transform.position = initialSliderTextPos; //Move the text back, we don't need a lot of room.
+
+            //Destroy the stuff we don't need.
+            GameObject.Destroy(winnerNumText);
+            GameObject.Destroy(winsText);
+        }
     }
 }

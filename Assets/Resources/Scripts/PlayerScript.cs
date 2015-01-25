@@ -10,6 +10,7 @@ public class PlayerScript : MonoBehaviour
     public int PlayerNum = 0;
 
     private InputManager inputManager = null;
+    private GameManager gameManager = null;
 
     private GameObject[] buttonPrompts = new GameObject[4];
 
@@ -33,6 +34,7 @@ public class PlayerScript : MonoBehaviour
 	void Start () 
     {
         inputManager = InputManager.Instance;
+        gameManager = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GameManager>();
 
         inputManager.Left_Thumbstick_Axis += ProcessMovement;
         inputManager.Button_Pressed += ProcessButtonPresses;
@@ -55,34 +57,40 @@ public class PlayerScript : MonoBehaviour
 
     private void ProcessMovement(int controllerNum, Vector2 thumbstickPosition)
     {
-        if (controllerNum == PlayerNum && activeTentacle != null)
+        if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
         {
-            if (thumbstickPosition != Vector2.zero)
+            if (controllerNum == PlayerNum && activeTentacle != null)
             {
-                tentacleGrabber.transform.position += new Vector3(thumbstickPosition.x, thumbstickPosition.y, 0) * MOVE_SPEED * Time.deltaTime;
+                if (thumbstickPosition != Vector2.zero)
+                {
+                    tentacleGrabber.transform.position += new Vector3(thumbstickPosition.x, thumbstickPosition.y, 0) * MOVE_SPEED * Time.deltaTime;
+                }
+                else
+                    tentacleGrabberRigidbody.angularVelocity = Vector2.zero;
             }
-            else
-                tentacleGrabberRigidbody.angularVelocity = Vector2.zero;
         }
     }
 
     private void ProcessButtonPresses(List<string> buttonsPressed)
     {
-        if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonA))
+        if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
         {
-            SelectTentacle('A');
-        }
-        if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonB))
-        {
-            SelectTentacle('B');
-        }
-        if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonX))
-        {
-            SelectTentacle('X');
-        }
-        if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonY))
-        {
-            SelectTentacle('Y');
+            if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonA))
+            {
+                SelectTentacle('A');
+            }
+            if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonB))
+            {
+                SelectTentacle('B');
+            }
+            if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonX))
+            {
+                SelectTentacle('X');
+            }
+            if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonY))
+            {
+                SelectTentacle('Y');
+            }
         }
     }
 
@@ -156,47 +164,50 @@ public class PlayerScript : MonoBehaviour
 
     private void ProcessTrigger(int controllerNum, float triggerValue)
     {
-        if (controllerNum == PlayerNum && triggerValue < 0.0f)
+        if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
         {
-            if (activeTentacle != null)
+            if (controllerNum == PlayerNum && triggerValue < 0.0f)
             {
-                if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == false
-                    && tentacleGrabber.GetComponent<GrabScript>().CollidingSlice != null)
+                if (activeTentacle != null)
                 {
-                    tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza = true;
-
-                    if (tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.tag == "Pizza") //Grab the slice
+                    if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == false
+                        && tentacleGrabber.GetComponent<GrabScript>().CollidingSlice != null)
                     {
-                        //Disable physics on the slice.
-                        GameObject.Destroy(tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<Rigidbody>());
-                        tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<BoxCollider>().isTrigger = true;
+                        tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza = true;
 
-                        tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.transform.parent = tentacleGrabber.transform;
+                        if (tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.tag == "Pizza") //Grab the slice
+                        {
+                            //Disable physics on the slice.
+                            GameObject.Destroy(tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<Rigidbody>());
+                            tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<BoxCollider>().isTrigger = true;
+
+                            tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.transform.parent = tentacleGrabber.transform;
+                        }
                     }
-                }
-                else if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter != null)
-                {
-                    if (tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.tag == "Platter") //Spin the platter
+                    else if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter != null)
                     {
-                        tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = true;
+                        if (tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.tag == "Platter") //Spin the platter
+                        {
+                            tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = true;
 
-                        Quaternion platterRotation = tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation;
+                            Quaternion platterRotation = tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation;
 
-                        platterRotation.eulerAngles += new Vector3(0, 0, tentacleGrabber.transform.localRotation.eulerAngles.z - 180) * ROTATE_SPEED * Time.deltaTime;
+                            platterRotation.eulerAngles += new Vector3(0, 0, tentacleGrabber.transform.localRotation.eulerAngles.z - 180) * ROTATE_SPEED * Time.deltaTime;
 
-                        tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation = platterRotation;
+                            tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation = platterRotation;
+                        }
                     }
                 }
             }
-        }
-        if (controllerNum == PlayerNum && triggerValue >= 0.0f) //Let go of the platter if previously holding it.
-        {
-            if (activeTentacle != null)
+            if (controllerNum == PlayerNum && triggerValue >= 0.0f) //Let go of the platter if previously holding it.
             {
-                if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == true)
-                    tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = false;
+                if (activeTentacle != null)
+                {
+                    if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == true)
+                        tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = false;
+                }
             }
         }
-
     }
+
 }

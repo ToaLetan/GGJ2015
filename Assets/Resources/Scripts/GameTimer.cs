@@ -34,7 +34,7 @@ public class GameTimer : MonoBehaviour
         }
 	}
 
-    private void UpdateDisplay(bool initializeDisplay = false)
+    public void UpdateDisplay(bool initializeDisplay = false)
     {
         //Calculate the time remaining and display it accordingly.
         float remainingTime = 0;
