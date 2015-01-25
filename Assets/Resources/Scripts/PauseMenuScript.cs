@@ -16,7 +16,7 @@ public class PauseMenuScript : MonoBehaviour
     private Color hide = new Color(0, 0, 0, 0);
 
     private int currentSelectionID = 0;
-    public int menuOwnerNum = 0;
+    private int menuOwnerNum = 0;
 
     private bool hasMovedThumbstick = false;
 

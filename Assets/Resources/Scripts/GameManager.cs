@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour 
 {
-    public const float ROUND_LENGTH = 1; //Rounds are 1 minute 30 seconds.
-    public const float NUM_ROUNDS = 1; //Play up to 3 rounds max.
+    public const float ROUND_LENGTH = 90; //Rounds are 1 minute 30 seconds.
+    public const float NUM_ROUNDS = 3; //Play up to 3 rounds max.
 
     private const float ICON_OFFSET = 0.22f;
     private const float INTRO_TIME = 1.0f;
@@ -38,6 +38,8 @@ public class GameManager : MonoBehaviour
     private bool isSliderAtDestination = false;
     private bool isGameOver = false;
     private bool isPlayingIntro = false;
+
+    private PizzaManager pizzaManager = null;
 
     private InputManager inputManager = null;
 
@@ -98,6 +100,8 @@ public class GameManager : MonoBehaviour
 
         isGamePaused = true;
         isPlayingIntro = true;
+
+        pizzaManager = gameObject.GetComponent<PizzaManager>(); //Pizza Manager is attached to this.
 	}
 	
 	// Update is called once per frame
@@ -160,6 +164,8 @@ public class GameManager : MonoBehaviour
             ResetIntro();
 
             isGamePaused = true;
+
+            pizzaManager.ResetPizzaSpawns();
         }
         else //The game is over, play the ending.
         {

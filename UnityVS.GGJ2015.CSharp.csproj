@@ -57,6 +57,7 @@
     <Compile Include="Assets\Resources\Scripts\GrabScript.cs" />
     <Compile Include="Assets\Resources\Scripts\InputManager.cs" />
     <Compile Include="Assets\Resources\Scripts\PauseMenuScript.cs" />
+    <Compile Include="Assets\Resources\Scripts\PizzaManager.cs" />
     <Compile Include="Assets\Resources\Scripts\PlayerScript.cs" />
     <Compile Include="Assets\Resources\Scripts\TentacleModifier.cs" />
     <Compile Include="Assets\Resources\Scripts\Timer.cs" />
