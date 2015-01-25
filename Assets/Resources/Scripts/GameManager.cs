@@ -4,12 +4,16 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour 
 {
-    public const float ROUND_LENGTH = 90; //Rounds are 1 minute 30 seconds.
-    public const float NUM_ROUNDS = 3; //Play up to 3 rounds max.
+    public const float ROUND_LENGTH = 1; //Rounds are 1 minute 30 seconds.
+    public const float NUM_ROUNDS = 1; //Play up to 3 rounds max.
 
     private const float ICON_OFFSET = 0.22f;
     private const float INTRO_TIME = 1.0f;
     private const float SLIDER_MOVE_SPEED = 1.5f;
+
+    public delegate void GameEvent();
+
+    public GameEvent GameRestart;
 
     private Timer roundIntroTimer = null;
     private Timer gameTimer = null;
@@ -17,6 +21,7 @@ public class GameManager : MonoBehaviour
     private GameObject[] playerWinsText = new GameObject[2];
 
     private GameObject sliderUI = null;
+    private GameObject pauseMenu = null;
 
     private Vector3 sliderDestination = Vector3.zero;
     private Vector3 sliderStartPos = Vector3.zero;
@@ -32,6 +37,7 @@ public class GameManager : MonoBehaviour
     private bool isGamePaused = false;
     private bool isSliderAtDestination = false;
     private bool isGameOver = false;
+    private bool isPlayingIntro = false;
 
     private InputManager inputManager = null;
 
@@ -57,6 +63,12 @@ public class GameManager : MonoBehaviour
         set { isGameOver = value; }
     }
 
+    public bool IsPlayingIntro
+    {
+        get { return isPlayingIntro; }
+        set { isPlayingIntro = false; }
+    }
+
 	// Use this for initialization
 	void Start () 
     {
@@ -74,6 +86,8 @@ public class GameManager : MonoBehaviour
         sliderUI = GameObject.Find("UI_Slider");
         sliderStartPos = sliderUI.transform.position;
 
+        pauseMenu = GameObject.Find("PauseMenu");
+
         roundIntroTimer = new Timer(INTRO_TIME, true);
         ResetIntro();
 
@@ -83,6 +97,7 @@ public class GameManager : MonoBehaviour
         gameTimer.OnTimerComplete += OnRoundOver;
 
         isGamePaused = true;
+        isPlayingIntro = true;
 	}
 	
 	// Update is called once per frame
@@ -166,6 +181,7 @@ public class GameManager : MonoBehaviour
 
     private void StartRound()
     {
+        isPlayingIntro = false;
         gameTimer.StartTimer();
         isGamePaused = false;
     }
@@ -298,4 +314,32 @@ public class GameManager : MonoBehaviour
             GameObject.Destroy(winsText);
         }
     }
+
+    public void ShowHidePauseMenu(int playerNum, bool showMenu)
+    {
+        if (showMenu == true) //The menu must be shown
+        {
+            isGamePaused = true;
+
+            pauseMenu.GetComponent<PauseMenuScript>().TogglePauseMenu(true);
+            pauseMenu.GetComponent<PauseMenuScript>().MenuOwnerNum = playerNum;
+        }
+        else //Close the menu
+        {
+            if(isGameOver == false)
+                isGamePaused = false;
+
+            pauseMenu.GetComponent<PauseMenuScript>().TogglePauseMenu(false);
+            pauseMenu.GetComponent<PauseMenuScript>().MenuOwnerNum = 0;
+        }
+    }
+
+    public void RestartGame()
+    {
+        if (GameRestart != null) //Fire an event to everything that needs to unsub from events.
+            GameRestart();
+
+        Application.LoadLevel(0);
+    }
+
 }

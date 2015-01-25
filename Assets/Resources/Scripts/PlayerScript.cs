@@ -40,6 +40,8 @@ public class PlayerScript : MonoBehaviour
         inputManager.Button_Pressed += ProcessButtonPresses;
         inputManager.Right_Trigger_Axis += ProcessTrigger;
 
+        gameManager.GameRestart += OnGameReset;
+
         playerControllerID = PlayerNum - 1;
 
         //Get the button prompts attached to each tentacle's first link.
@@ -57,7 +59,7 @@ public class PlayerScript : MonoBehaviour
 
     private void ProcessMovement(int controllerNum, Vector2 thumbstickPosition)
     {
-        if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
+        if (gameManager.IsGamePaused == false)
         {
             if (controllerNum == PlayerNum && activeTentacle != null)
             {
@@ -91,6 +93,13 @@ public class PlayerScript : MonoBehaviour
             {
                 SelectTentacle('Y');
             }
+        }
+        if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].startButton)) //Show/hide the pause menu.
+        {
+            if(gameManager.IsGamePaused == false || gameManager.IsGameOver == true)
+                gameManager.ShowHidePauseMenu(PlayerNum, true);
+            else if(gameManager.IsGamePaused == true && gameManager.IsPlayingIntro == false)
+                gameManager.ShowHidePauseMenu(PlayerNum, false);
         }
     }
 
@@ -208,6 +217,13 @@ public class PlayerScript : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void OnGameReset()
+    {
+        inputManager.Left_Thumbstick_Axis -= ProcessMovement;
+        inputManager.Button_Pressed -= ProcessButtonPresses;
+        inputManager.Right_Trigger_Axis -= ProcessTrigger;
     }
 
 }
