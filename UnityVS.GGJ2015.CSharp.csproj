@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Resources\Scripts\GameManager.cs" />
+    <Compile Include="Assets\Resources\Scripts\GrabScript.cs" />
     <Compile Include="Assets\Resources\Scripts\InputManager.cs" />
     <Compile Include="Assets\Resources\Scripts\PlayerScript.cs" />
     <Compile Include="Assets\Resources\Scripts\TentacleModifier.cs" />

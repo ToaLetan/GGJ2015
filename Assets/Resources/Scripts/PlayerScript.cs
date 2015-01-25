@@ -16,7 +16,7 @@ public class PlayerScript : MonoBehaviour
     private GameObject tentacleGrabber = null;
     private Rigidbody tentacleGrabberRigidbody = null;
 
-    private int controllerNum;
+    private int playerControllerID = 0;
 
 	// Use this for initialization
 	void Start () 
@@ -25,8 +25,9 @@ public class PlayerScript : MonoBehaviour
 
         inputManager.Left_Thumbstick_Axis += ProcessMovement;
         inputManager.Button_Pressed += ProcessButtonPresses;
+        inputManager.Right_Trigger_Axis += ProcessTrigger;
 
-        controllerNum = PlayerNum - 1;
+        playerControllerID = PlayerNum - 1;
 
         //Get the button prompts attached to each tentacle's first link.
         buttonPrompts[0] = gameObject.transform.FindChild("Tentacle_A").FindChild("Tentacle_Link_0").GetChild(0).gameObject;
@@ -56,19 +57,19 @@ public class PlayerScript : MonoBehaviour
 
     private void ProcessButtonPresses(List<string> buttonsPressed)
     {
-        if (buttonsPressed.Contains(inputManager.ControllerArray[controllerNum].buttonA))
+        if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonA))
         {
             SelectTentacle('A');
         }
-        if (buttonsPressed.Contains(inputManager.ControllerArray[controllerNum].buttonB))
+        if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonB))
         {
             SelectTentacle('B');
         }
-        if (buttonsPressed.Contains(inputManager.ControllerArray[controllerNum].buttonX))
+        if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonX))
         {
             SelectTentacle('X');
         }
-        if (buttonsPressed.Contains(inputManager.ControllerArray[controllerNum].buttonY))
+        if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonY))
         {
             SelectTentacle('Y');
         }
@@ -76,10 +77,14 @@ public class PlayerScript : MonoBehaviour
 
     private void SelectTentacle(char tentacleButton)
     {
+        //Get the active tentacle, the end of the tentacle, and set its script to be active.
         activeTentacle = gameObject.transform.FindChild("Tentacle_" + tentacleButton).gameObject;
         tentacleGrabber = activeTentacle.transform.FindChild("Tentacle_Grabber").gameObject;
         tentacleGrabberRigidbody = tentacleGrabber.GetComponent<Rigidbody>();
 
+        tentacleGrabber.GetComponent<GrabScript>().IsTentacleActive = true;
+
+        //Highlight the selected button prompt.
         HighlightButtonPrompt(tentacleButton);
     }
 
@@ -136,6 +141,25 @@ public class PlayerScript : MonoBehaviour
                     buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Button_" + currentButton);
             }
         }
+    }
 
+    private void ProcessTrigger(int controllerNum, float triggerValue)
+    {
+        if (controllerNum == PlayerNum && triggerValue < 0.0f)
+        {
+            if (activeTentacle != null)
+            {
+                if (tentacleGrabber.GetComponent<GrabScript>().IsTentacleActive == true && tentacleGrabber.GetComponent<GrabScript>().CollidingObject != null)
+                {
+                    tentacleGrabber.GetComponent<GrabScript>().IsTentacleActive = false;
+
+                    //Disable physics on the slice.
+                    GameObject.Destroy(tentacleGrabber.GetComponent<GrabScript>().CollidingObject.GetComponent<Rigidbody>() );
+                    tentacleGrabber.GetComponent<GrabScript>().CollidingObject.GetComponent<BoxCollider>().isTrigger = true;
+
+                    tentacleGrabber.GetComponent<GrabScript>().CollidingObject.transform.parent = tentacleGrabber.transform;
+                }
+            } 
+        }
     }
 }
