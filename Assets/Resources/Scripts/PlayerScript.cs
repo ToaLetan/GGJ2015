@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class PlayerScript : MonoBehaviour 
 {
     private const float MOVE_SPEED = 1.0f;
+    private const float ROTATE_SPEED = 0.5f;
 
     public int PlayerNum = 0;
 
@@ -17,6 +18,16 @@ public class PlayerScript : MonoBehaviour
     private Rigidbody tentacleGrabberRigidbody = null;
 
     private int playerControllerID = 0;
+
+    public GameObject ActiveTentacle
+    {
+        get { return activeTentacle; }
+    }
+
+    public GameObject TentacleGrabber
+    {
+        get { return tentacleGrabber; }
+    }
 
 	// Use this for initialization
 	void Start () 
@@ -149,17 +160,43 @@ public class PlayerScript : MonoBehaviour
         {
             if (activeTentacle != null)
             {
-                if (tentacleGrabber.GetComponent<GrabScript>().IsTentacleActive == true && tentacleGrabber.GetComponent<GrabScript>().CollidingObject != null)
+                if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == false
+                    && tentacleGrabber.GetComponent<GrabScript>().CollidingSlice != null)
                 {
-                    tentacleGrabber.GetComponent<GrabScript>().IsTentacleActive = false;
+                    tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza = true;
 
-                    //Disable physics on the slice.
-                    GameObject.Destroy(tentacleGrabber.GetComponent<GrabScript>().CollidingObject.GetComponent<Rigidbody>() );
-                    tentacleGrabber.GetComponent<GrabScript>().CollidingObject.GetComponent<BoxCollider>().isTrigger = true;
+                    if (tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.tag == "Pizza") //Grab the slice
+                    {
+                        //Disable physics on the slice.
+                        GameObject.Destroy(tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<Rigidbody>());
+                        tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<BoxCollider>().isTrigger = true;
 
-                    tentacleGrabber.GetComponent<GrabScript>().CollidingObject.transform.parent = tentacleGrabber.transform;
+                        tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.transform.parent = tentacleGrabber.transform;
+                    }
                 }
-            } 
+                else if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter != null)
+                {
+                    if (tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.tag == "Platter") //Spin the platter
+                    {
+                        tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = true;
+
+                        Quaternion platterRotation = tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation;
+
+                        platterRotation.eulerAngles += new Vector3(0, 0, tentacleGrabber.transform.localRotation.eulerAngles.z - 180) * ROTATE_SPEED * Time.deltaTime;
+
+                        tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation = platterRotation;
+                    }
+                }
+            }
         }
+        if (controllerNum == PlayerNum && triggerValue >= 0.0f) //Let go of the platter if previously holding it.
+        {
+            if (activeTentacle != null)
+            {
+                if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == true)
+                    tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = false;
+            }
+        }
+
     }
 }

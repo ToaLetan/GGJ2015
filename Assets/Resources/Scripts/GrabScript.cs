@@ -3,20 +3,41 @@ using System.Collections;
 
 public class GrabScript : MonoBehaviour 
 {
-    private GameObject collidingObject = null;
+    private GameObject collidingSlice = null;
+    private GameObject collidingPlatter = null;
 
     private bool isTentacleActive = false;
+    private bool isHoldingPizza = false;
+    private bool isHoldingPlatter = false;
 
-    public GameObject CollidingObject
+    public GameObject CollidingSlice
     {
-        get { return collidingObject; }
-        set { collidingObject = value; }
+        get { return collidingSlice; }
+        set { collidingSlice = value; }
+    }
+
+    public GameObject CollidingPlatter
+    {
+        get { return collidingPlatter; }
+        set { collidingPlatter = value; }
     }
 
     public bool IsTentacleActive
     {
         get { return isTentacleActive; }
         set { isTentacleActive = value; }
+    }
+
+    public bool IsHoldingPizza
+    {
+        get { return isHoldingPizza; }
+        set { isHoldingPizza = value; }
+    }
+
+    public bool IsHoldingPlatter
+    {
+        get { return isHoldingPlatter; }
+        set { isHoldingPlatter = value; }
     }
 
 	// Use this for initialization
@@ -37,7 +58,18 @@ public class GrabScript : MonoBehaviour
         {
             if (collisionObj.gameObject.tag == "Pizza")
             {
-                collidingObject = collisionObj.gameObject;
+                collidingSlice = collisionObj.gameObject;
+            }
+        }
+    }
+
+    void OnCollisionStay(Collision collisionObj)
+    {
+        if (isTentacleActive && collidingSlice == null)
+        {
+            if (collisionObj.gameObject.tag == "Pizza")
+            {
+                collidingSlice = collisionObj.gameObject;
             }
         }
     }
@@ -48,7 +80,37 @@ public class GrabScript : MonoBehaviour
         {
             if (collisionObj.gameObject.tag == "Pizza")
             {
-                collidingObject = null;
+                collidingSlice = null;
+            }
+        }
+    }
+
+    void OnTriggerEnter(Collider collisionObj)
+    {
+        if (collisionObj.gameObject.tag == "Platter")
+        {
+            collidingPlatter = collisionObj.gameObject;
+        }
+    }
+
+    void OnTriggerStay(Collider collisionObj)
+    {
+        if (isTentacleActive == true && collidingPlatter == null)
+        {
+            if (collisionObj.gameObject.tag == "Platter")
+            {
+                collidingPlatter = collisionObj.gameObject;
+            }
+        }
+    }
+
+    void OnTriggerExit(Collider collisionObj)
+    {
+        if (isTentacleActive)
+        {
+            if (collisionObj.gameObject.tag == "Platter")
+            {
+                collidingPlatter = null;
             }
         }
     }

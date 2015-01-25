@@ -245,13 +245,13 @@ public class InputManager
 
             if (Left_Trigger_Axis != null)
             {
-                if (Input.GetAxis(ControllerArray[i].leftRightTriggers) > 0)
+                if (Input.GetAxis(ControllerArray[i].leftRightTriggers) >= 0)
                     Left_Trigger_Axis(ControllerArray[i].controllerNumber, Input.GetAxis(ControllerArray[i].leftRightTriggers));
             }
 
             if (Right_Trigger_Axis != null)
             {
-                if (Input.GetAxis(ControllerArray[i].leftRightTriggers) < 0)
+                if (Input.GetAxis(ControllerArray[i].leftRightTriggers) <= 0)
                     Right_Trigger_Axis(ControllerArray[i].controllerNumber, Input.GetAxis(ControllerArray[i].leftRightTriggers));
             }
             //=================================================================================
