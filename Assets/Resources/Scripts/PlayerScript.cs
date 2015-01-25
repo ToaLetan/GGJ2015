@@ -14,9 +14,13 @@ public class PlayerScript : MonoBehaviour
 
     private GameObject[] buttonPrompts = new GameObject[4];
 
+    private GameObject triggerPrompt = null;
+
     private GameObject activeTentacle = null;
     private GameObject tentacleGrabber = null;
     private Rigidbody tentacleGrabberRigidbody = null;
+
+    private Color hide = new Color(0, 0, 0, 0);
 
     private int playerControllerID = 0;
 
@@ -49,17 +53,21 @@ public class PlayerScript : MonoBehaviour
         buttonPrompts[1] = gameObject.transform.FindChild("Tentacle_B").FindChild("Tentacle_Link_0").GetChild(0).gameObject;
         buttonPrompts[2] = gameObject.transform.FindChild("Tentacle_X").FindChild("Tentacle_Link_0").GetChild(0).gameObject;
         buttonPrompts[3] = gameObject.transform.FindChild("Tentacle_Y").FindChild("Tentacle_Link_0").GetChild(0).gameObject;
+
+        triggerPrompt = GameObject.Find("RT_Prompt_Player_" + PlayerNum);
+        triggerPrompt.transform.GetComponent<SpriteRenderer>().color = hide;
+        triggerPrompt.transform.GetChild(0).GetComponent<SpriteRenderer>().color = hide;
 	}
 	
 	// Update is called once per frame
 	void Update () 
     {
-	
+
 	}
 
     private void ProcessMovement(int controllerNum, Vector2 thumbstickPosition)
     {
-        if (gameManager.IsGamePaused == false)
+        if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
         {
             if (controllerNum == PlayerNum && activeTentacle != null)
             {
@@ -105,12 +113,18 @@ public class PlayerScript : MonoBehaviour
 
     private void SelectTentacle(char tentacleButton)
     {
+        if (activeTentacle != null) //If there's already a tentacle in use, de-highlight it.
+        {
+            tentacleGrabber.GetComponent<GrabScript>().OnGrabEnter -= HighlightTriggerPrompt;
+        }
+
         //Get the active tentacle, the end of the tentacle, and set its script to be active.
         activeTentacle = gameObject.transform.FindChild("Tentacle_" + tentacleButton).gameObject;
         tentacleGrabber = activeTentacle.transform.FindChild("Tentacle_Grabber").gameObject;
         tentacleGrabberRigidbody = tentacleGrabber.GetComponent<Rigidbody>();
 
         tentacleGrabber.GetComponent<GrabScript>().IsTentacleActive = true;
+        tentacleGrabber.GetComponent<GrabScript>().OnGrabEnter += HighlightTriggerPrompt;
 
         //Highlight the selected button prompt.
         HighlightButtonPrompt(tentacleButton);
@@ -171,6 +185,38 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
+    private void HighlightTriggerPrompt()
+    {
+        if (activeTentacle != null)
+        {
+            if (tentacleGrabber.GetComponent<GrabScript>().CollidingSlice != null) //Show "GRAB"
+            {
+                triggerPrompt.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Grab");
+
+                if (triggerPrompt.transform.GetComponent<SpriteRenderer>().color == hide)
+                {
+                    triggerPrompt.transform.GetComponent<SpriteRenderer>().color = Color.white;
+                    triggerPrompt.transform.GetChild(0).GetComponent<SpriteRenderer>().color = Color.white;
+                }
+            }
+            else if (tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter != null) //Show "SPIN"
+            {
+                triggerPrompt.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Spin");
+
+                if (triggerPrompt.transform.GetComponent<SpriteRenderer>().color == hide)
+                {
+                    triggerPrompt.transform.GetComponent<SpriteRenderer>().color = Color.white;
+                    triggerPrompt.transform.GetChild(0).GetComponent<SpriteRenderer>().color = Color.white;
+                }
+            }
+            else
+            {
+                triggerPrompt.transform.GetComponent<SpriteRenderer>().color = hide;
+                triggerPrompt.transform.GetChild(0).GetComponent<SpriteRenderer>().color = hide;
+            }
+        }
+    }
+
     private void ProcessTrigger(int controllerNum, float triggerValue)
     {
         if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
@@ -206,6 +252,9 @@ public class PlayerScript : MonoBehaviour
                             tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation = platterRotation;
                         }
                     }
+                    //Highlight RT
+                    triggerPrompt.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Trigger_Right");
+
                 }
             }
             if (controllerNum == PlayerNum && triggerValue >= 0.0f) //Let go of the platter if previously holding it.
@@ -214,6 +263,9 @@ public class PlayerScript : MonoBehaviour
                 {
                     if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == true)
                         tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = false;
+
+                    //Highlight RT
+                    triggerPrompt.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Trigger_Right");
                 }
             }
         }
@@ -225,5 +277,4 @@ public class PlayerScript : MonoBehaviour
         inputManager.Button_Pressed -= ProcessButtonPresses;
         inputManager.Right_Trigger_Axis -= ProcessTrigger;
     }
-
 }

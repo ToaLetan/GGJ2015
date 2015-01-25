@@ -3,6 +3,9 @@ using System.Collections;
 
 public class GrabScript : MonoBehaviour 
 {
+    public delegate void GrabEvent();
+    public GrabEvent OnGrabEnter;
+
     private GameObject collidingSlice = null;
     private GameObject collidingPlatter = null;
 
@@ -59,6 +62,9 @@ public class GrabScript : MonoBehaviour
             if (collisionObj.gameObject.tag == "Pizza")
             {
                 collidingSlice = collisionObj.gameObject;
+
+                if (OnGrabEnter != null)
+                    OnGrabEnter();
             }
         }
     }
@@ -70,6 +76,9 @@ public class GrabScript : MonoBehaviour
             if (collisionObj.gameObject.tag == "Pizza")
             {
                 collidingSlice = collisionObj.gameObject;
+
+                if (OnGrabEnter != null)
+                    OnGrabEnter();
             }
         }
     }
@@ -81,6 +90,9 @@ public class GrabScript : MonoBehaviour
             if (collisionObj.gameObject.tag == "Pizza")
             {
                 collidingSlice = null;
+
+                if (OnGrabEnter != null)
+                    OnGrabEnter();
             }
         }
     }
@@ -90,6 +102,9 @@ public class GrabScript : MonoBehaviour
         if (collisionObj.gameObject.tag == "Platter")
         {
             collidingPlatter = collisionObj.gameObject;
+
+            if (OnGrabEnter != null)
+                OnGrabEnter();
         }
     }
 
@@ -100,6 +115,9 @@ public class GrabScript : MonoBehaviour
             if (collisionObj.gameObject.tag == "Platter")
             {
                 collidingPlatter = collisionObj.gameObject;
+
+                if (OnGrabEnter != null)
+                    OnGrabEnter();
             }
         }
     }
@@ -111,6 +129,9 @@ public class GrabScript : MonoBehaviour
             if (collisionObj.gameObject.tag == "Platter")
             {
                 collidingPlatter = null;
+
+                if (OnGrabEnter != null)
+                    OnGrabEnter();
             }
         }
     }
