@@ -9,6 +9,8 @@ public class PlayerScript : MonoBehaviour
 
     public int PlayerNum = 0;
 
+    public enum InputSource { Controller, Keyboard };
+
     private InputManager inputManager = null;
     private GameManager gameManager = null;
 
@@ -20,9 +22,11 @@ public class PlayerScript : MonoBehaviour
     private GameObject tentacleGrabber = null;
     private Rigidbody tentacleGrabberRigidbody = null;
 
+    private InputSource currentInputSource;
+
     private Color hide = new Color(0, 0, 0, 0);
 
-    private int playerControllerID = 0;
+    private int playerInputID = 0;
 
     public GameObject ActiveTentacle
     {
@@ -34,19 +38,19 @@ public class PlayerScript : MonoBehaviour
         get { return tentacleGrabber; }
     }
 
+    public int PlayerInputID
+    {
+        get { return playerInputID; }
+        set { playerInputID = value; }
+    }
+
 	// Use this for initialization
 	void Start () 
     {
         inputManager = InputManager.Instance;
         gameManager = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GameManager>();
 
-        inputManager.Left_Thumbstick_Axis += ProcessMovement;
-        inputManager.Button_Pressed += ProcessButtonPresses;
-        inputManager.Right_Trigger_Axis += ProcessTrigger;
-
         gameManager.GameRestart += OnGameReset;
-
-        playerControllerID = PlayerNum - 1;
 
         //Get the button prompts attached to each tentacle's first link.
         buttonPrompts[0] = gameObject.transform.FindChild("Tentacle_A").FindChild("Tentacle_Link_0").GetChild(0).gameObject;
@@ -65,11 +69,11 @@ public class PlayerScript : MonoBehaviour
 
 	}
 
-    private void ProcessMovement(int controllerNum, Vector2 thumbstickPosition)
+    private void ProcessThumbstickMovement(int controllerNum, Vector2 thumbstickPosition)
     {
         if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
         {
-            if (controllerNum == PlayerNum && activeTentacle != null)
+            if ((controllerNum - 1) == playerInputID && activeTentacle != null)
             {
                 if (thumbstickPosition != Vector2.zero)
                 {
@@ -85,29 +89,143 @@ public class PlayerScript : MonoBehaviour
     {
         if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
         {
-            if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonA))
+            if (buttonsPressed.Contains(inputManager.ControllerArray[playerInputID].buttonA))
             {
                 SelectTentacle('A');
             }
-            if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonB))
+            if (buttonsPressed.Contains(inputManager.ControllerArray[playerInputID].buttonB))
             {
                 SelectTentacle('B');
             }
-            if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonX))
+            if (buttonsPressed.Contains(inputManager.ControllerArray[playerInputID].buttonX))
             {
                 SelectTentacle('X');
             }
-            if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].buttonY))
+            if (buttonsPressed.Contains(inputManager.ControllerArray[playerInputID].buttonY))
             {
                 SelectTentacle('Y');
             }
         }
-        if (buttonsPressed.Contains(inputManager.ControllerArray[playerControllerID].startButton)) //Show/hide the pause menu.
+        if (buttonsPressed.Contains(inputManager.ControllerArray[playerInputID].startButton)) //Show/hide the pause menu.
         {
             if(gameManager.IsGamePaused == false || gameManager.IsGameOver == true)
-                gameManager.ShowHidePauseMenu(PlayerNum, true);
+                gameManager.ShowHidePauseMenu(playerInputID, true);
             else if(gameManager.IsGamePaused == true && gameManager.IsPlayingIntro == false)
-                gameManager.ShowHidePauseMenu(PlayerNum, false);
+                gameManager.ShowHidePauseMenu(playerInputID, false);
+        }
+    }
+
+    private void ProcessTrigger(int controllerNum, float triggerValue)
+    {
+        if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
+        {
+            if ((controllerNum - 1) == playerInputID && triggerValue < 0.0f)
+            {
+                if (activeTentacle != null)
+                {
+                    Grab();
+
+                    //Highlight RT
+                    triggerPrompt.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Trigger_Right");
+                }
+            }
+            if (controllerNum == PlayerNum && triggerValue >= 0.0f) //Let go of the platter if previously holding it.
+            {
+                if (activeTentacle != null)
+                {
+                    if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == true)
+                        tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = false;
+
+                    //Highlight RT
+                    triggerPrompt.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Trigger_Right");
+                }
+            }
+        }
+    }
+
+    private void ProcessHeldKeys(List<string> keysHeld)
+    {
+        if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
+        {
+            if (activeTentacle != null)
+            {
+                //If any directional keys are being held, determine a direction based on what's being held similarly to how thumbsticks go from -1 to 1.
+                if (keysHeld.Contains(inputManager.KeybindArray[playerInputID].upKey.ToString()) || keysHeld.Contains(inputManager.KeybindArray[playerInputID].downKey.ToString())
+                    || keysHeld.Contains(inputManager.KeybindArray[playerInputID].leftKey.ToString()) || keysHeld.Contains(inputManager.KeybindArray[playerInputID].rightKey.ToString()))
+                {
+                    int directionX = 0;
+                    int directionY = 0;
+
+                    if (keysHeld.Contains(inputManager.KeybindArray[playerInputID].upKey.ToString()))
+                        directionY += 1;
+                    if (keysHeld.Contains(inputManager.KeybindArray[playerInputID].downKey.ToString()))
+                        directionY += -1;
+                    if (keysHeld.Contains(inputManager.KeybindArray[playerInputID].leftKey.ToString()))
+                        directionX += -1;
+                    if (keysHeld.Contains(inputManager.KeybindArray[playerInputID].rightKey.ToString()))
+                        directionX += 1;
+
+                    tentacleGrabber.transform.position += new Vector3(directionX, directionY, 0) * MOVE_SPEED * Time.deltaTime;
+                }
+                else
+                    tentacleGrabberRigidbody.angularVelocity = Vector2.zero;
+
+                if(keysHeld.Contains(inputManager.KeybindArray[playerInputID].rightTriggerKey.ToString()) )
+                {
+                    if (activeTentacle != null)
+                    {
+                        Grab();
+
+                        //Highlight prompt
+                        triggerPrompt.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Key_RT" + (playerInputID+ 1) );
+                    }
+                }
+            }
+        }
+    }
+
+    private void ProcessPressedKeys(List<string> keysPressed)
+    {
+        if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
+        {
+            if (keysPressed.Contains(inputManager.KeybindArray[playerInputID].buttonAKey.ToString() ))
+            {
+                SelectTentacle('A');
+            }
+            if (keysPressed.Contains(inputManager.KeybindArray[playerInputID].buttonBKey.ToString() ))
+            {
+                SelectTentacle('B');
+            }
+            if (keysPressed.Contains(inputManager.KeybindArray[playerInputID].buttonXKey.ToString() ))
+            {
+                SelectTentacle('X');
+            }
+            if (keysPressed.Contains(inputManager.KeybindArray[playerInputID].buttonYKey.ToString() ))
+            {
+                SelectTentacle('Y');
+            }
+        }
+        if (keysPressed.Contains(inputManager.KeybindArray[playerInputID].startKey.ToString() )) //Show/hide the pause menu.
+        {
+            if (gameManager.IsGamePaused == false || gameManager.IsGameOver == true)
+                gameManager.ShowHidePauseMenu(playerInputID, true);
+            else if (gameManager.IsGamePaused == true && gameManager.IsPlayingIntro == false)
+                gameManager.ShowHidePauseMenu(playerInputID, false);
+        }
+    }
+
+    private void ProcessReleasedKeys(List<string> keysReleased)
+    {
+        if (keysReleased.Contains(inputManager.KeybindArray[playerInputID].rightTriggerKey.ToString())) //Let go of the held object
+        {
+            if (activeTentacle != null)
+            {
+                if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == true)
+                    tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = false;
+
+                //Highlight RT
+                triggerPrompt.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_RT" + (playerInputID + 1));
+            }
         }
     }
 
@@ -128,6 +246,37 @@ public class PlayerScript : MonoBehaviour
 
         //Highlight the selected button prompt.
         HighlightButtonPrompt(tentacleButton);
+    }
+
+    private void Grab()
+    {
+        if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == false
+                        && tentacleGrabber.GetComponent<GrabScript>().CollidingSlice != null)
+        {
+            tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza = true;
+
+            if (tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.tag == "Pizza") //Grab the slice
+            {
+                //Disable physics on the slice.
+                GameObject.Destroy(tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<Rigidbody>());
+                tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<BoxCollider>().isTrigger = true;
+
+                tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.transform.parent = tentacleGrabber.transform;
+            }
+        }
+        else if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter != null)
+        {
+            if (tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.tag == "Platter") //Spin the platter
+            {
+                tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = true;
+
+                Quaternion platterRotation = tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation;
+
+                platterRotation.eulerAngles += new Vector3(0, 0, tentacleGrabber.transform.localRotation.eulerAngles.z - 180) * ROTATE_SPEED * Time.deltaTime;
+
+                tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation = platterRotation;
+            }
+        }
     }
 
     private void HighlightButtonPrompt(char button)
@@ -152,7 +301,16 @@ public class PlayerScript : MonoBehaviour
                 break;
         }
 
-        buttonPrompts[currentActiveButtonIndex].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Button_" + button);
+        if(currentInputSource == InputSource.Controller)
+            buttonPrompts[currentActiveButtonIndex].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Button_" + button);
+        else if (currentInputSource == InputSource.Keyboard)
+        {
+            if (currentActiveButtonIndex == 3) //Y has two different keys depending on numpad or alphanumeric.
+                buttonPrompts[currentActiveButtonIndex].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Key_" + button + (playerInputID + 1));
+            else
+                buttonPrompts[currentActiveButtonIndex].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Key_" + button);
+        }
+            
 
         //Loop through the other buttons and de-highlight any that were previously highlighted
         for (int i = 0; i < buttonPrompts.Length; i++)
@@ -180,7 +338,17 @@ public class PlayerScript : MonoBehaviour
                 }
 
                 if (currentButton != ' ')
-                    buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Button_" + currentButton);
+                {
+                    if(currentInputSource == InputSource.Controller)
+                        buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Button_" + currentButton);
+                    else if (currentInputSource == InputSource.Keyboard)
+                    {
+                        if (currentButton == 'Y')
+                            buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton + (playerInputID + 1));
+                        else
+                            buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton);
+                    }
+                }
             }
         }
     }
@@ -217,64 +385,85 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
-    private void ProcessTrigger(int controllerNum, float triggerValue)
+    private void OnGameReset()
     {
-        if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
+        if (gameManager.PlayerInputSources[PlayerNum - 1].Contains("Keybinds"))
         {
-            if (controllerNum == PlayerNum && triggerValue < 0.0f)
-            {
-                if (activeTentacle != null)
-                {
-                    if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == false
-                        && tentacleGrabber.GetComponent<GrabScript>().CollidingSlice != null)
-                    {
-                        tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza = true;
+            currentInputSource = InputSource.Keyboard;
 
-                        if (tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.tag == "Pizza") //Grab the slice
-                        {
-                            //Disable physics on the slice.
-                            GameObject.Destroy(tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<Rigidbody>());
-                            tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<BoxCollider>().isTrigger = true;
+            inputManager.Key_Held -= ProcessHeldKeys;
+            inputManager.Key_Pressed -= ProcessPressedKeys;
+            inputManager.Key_Released -= ProcessReleasedKeys;
+        }
+        else if (gameManager.PlayerInputSources[PlayerNum - 1].Contains("GamepadControls"))
+        {
+            currentInputSource = InputSource.Controller;
 
-                            tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.transform.parent = tentacleGrabber.transform;
-                        }
-                    }
-                    else if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter != null)
-                    {
-                        if (tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.tag == "Platter") //Spin the platter
-                        {
-                            tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = true;
-
-                            Quaternion platterRotation = tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation;
-
-                            platterRotation.eulerAngles += new Vector3(0, 0, tentacleGrabber.transform.localRotation.eulerAngles.z - 180) * ROTATE_SPEED * Time.deltaTime;
-
-                            tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation = platterRotation;
-                        }
-                    }
-                    //Highlight RT
-                    triggerPrompt.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Trigger_Right");
-
-                }
-            }
-            if (controllerNum == PlayerNum && triggerValue >= 0.0f) //Let go of the platter if previously holding it.
-            {
-                if (activeTentacle != null)
-                {
-                    if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == true)
-                        tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = false;
-
-                    //Highlight RT
-                    triggerPrompt.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Trigger_Right");
-                }
-            }
+            inputManager.Left_Thumbstick_Axis -= ProcessThumbstickMovement;
+            inputManager.Button_Pressed -= ProcessButtonPresses;
+            inputManager.Right_Trigger_Axis -= ProcessTrigger;
         }
     }
 
-    private void OnGameReset()
+    public void AssignInput()
     {
-        inputManager.Left_Thumbstick_Axis -= ProcessMovement;
-        inputManager.Button_Pressed -= ProcessButtonPresses;
-        inputManager.Right_Trigger_Axis -= ProcessTrigger;
+        playerInputID = int.Parse(gameManager.PlayerInputSources[PlayerNum - 1].Substring(gameManager.PlayerInputSources[PlayerNum - 1].IndexOf(" ") ) );
+
+        if (gameManager.PlayerInputSources[PlayerNum - 1].Contains("Keybinds"))
+        {
+            currentInputSource = InputSource.Keyboard;
+
+            inputManager.Key_Held += ProcessHeldKeys;
+            inputManager.Key_Pressed += ProcessPressedKeys;
+            inputManager.Key_Released += ProcessReleasedKeys;
+
+            //Swap all Prompts to display Keys
+            triggerPrompt.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_RT" + (playerInputID + 1));
+
+            //Loop through the other buttons and de-highlight any that were previously highlighted
+            for (int i = 0; i < buttonPrompts.Length; i++)
+            {
+                char currentButton = ' ';
+
+                    switch(i)
+                    {
+                        case 0:
+                            currentButton = 'A';
+                            break;
+                        case 1:
+                            currentButton = 'B';
+                            break;
+                        case 2:
+                            currentButton = 'X';
+                            break;
+                        case 3:
+                            currentButton = 'Y';
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (currentButton != ' ')
+                    {
+                        if(currentInputSource == InputSource.Controller)
+                            buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Button_" + currentButton);
+                        else if (currentInputSource == InputSource.Keyboard)
+                        {
+                            if(currentButton == 'Y')
+                                buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton + (playerInputID + 1) );
+                            else
+                                buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton);
+                        }
+                    }
+            }
+        }
+        else if (gameManager.PlayerInputSources[PlayerNum - 1].Contains("GamepadControls"))
+        {
+            currentInputSource = InputSource.Controller;
+
+            inputManager.Left_Thumbstick_Axis += ProcessThumbstickMovement;
+            inputManager.Button_Pressed += ProcessButtonPresses;
+            inputManager.Right_Trigger_Axis += ProcessTrigger;
+        }
     }
 }

@@ -11,17 +11,26 @@ public class GameManager : MonoBehaviour
     private const float INTRO_TIME = 1.0f;
     private const float SLIDER_MOVE_SPEED = 1.5f;
 
+    private const int NUM_OF_PLAYERS = 2; //This is a 2-player game.
+
+    public enum GameState { JoinScreen, Intro, InGame, PostGame };
+
     public delegate void GameEvent();
 
     public GameEvent GameRestart;
+
+    public List<string> PlayerInputSources = new List<string>(); //Where players are getting their controls from (controller 1-2 or keyboard 1-2) by name.
 
     private Timer roundIntroTimer = null;
     private Timer gameTimer = null;
 
     private GameObject[] playerWinsText = new GameObject[2];
+    private GameObject[] playerArray = new GameObject[2];
 
     private GameObject sliderUI = null;
     private GameObject pauseMenu = null;
+
+    private GameState currentGameState = GameState.JoinScreen;
 
     private Vector3 sliderDestination = Vector3.zero;
     private Vector3 sliderStartPos = Vector3.zero;
@@ -35,7 +44,7 @@ public class GameManager : MonoBehaviour
     private int introPhase = 0; //0 = READY?, 1 = EAT!
 
     private bool isGamePaused = false;
-    private bool isSliderAtDestination = false;
+    private bool isSliderAtDestination = true;
     private bool isGameOver = false;
     private bool isPlayingIntro = false;
 
@@ -46,6 +55,12 @@ public class GameManager : MonoBehaviour
     public InputManager GameInputManager
     {
         get { return inputManager; }
+    }
+
+    public GameState CurrentGameState
+    {
+        get { return currentGameState; }
+        set { currentGameState = value; }
     }
 
     public Timer GameTimer
@@ -76,26 +91,26 @@ public class GameManager : MonoBehaviour
     {
         inputManager = InputManager.Instance;
 
-        playerScores[0] = 0;
-        playerScores[1] = 0;
 
-        playerWins[0] = 0;
-        playerWins[1] = 0;
+        for (int i = 0; i < NUM_OF_PLAYERS; i++)
+        {
+            playerScores[i] = 0;
+            playerWins[i] = 0;
 
-        playerWinsText[0] = GameObject.Find("Text_Wins_P1");
-        playerWinsText[1] = GameObject.Find("Text_Wins_P2");
+            PlayerInputSources.Add("");
+
+            playerWinsText[i] = GameObject.Find("Text_Wins_P" + (i+1) );
+            playerArray[i] = GameObject.Find("Player" + (i+1) );
+        }
 
         sliderUI = GameObject.Find("UI_Slider");
         sliderStartPos = sliderUI.transform.position;
 
         pauseMenu = GameObject.Find("PauseMenu");
 
-        roundIntroTimer = new Timer(INTRO_TIME, true);
-        ResetIntro();
-
         currentRound = 1; //Obviously we start at the first round.
 
-        gameTimer = new Timer(ROUND_LENGTH); //TODO: MAKE A "ROUND START!" THING BEFORE THIS RUNS
+        gameTimer = new Timer(ROUND_LENGTH);
         gameTimer.OnTimerComplete += OnRoundOver;
 
         isGamePaused = true;
@@ -109,16 +124,35 @@ public class GameManager : MonoBehaviour
     {
         inputManager.Update();
 
-        if (isGamePaused == false)
+        if (isGamePaused == false && currentGameState == GameState.InGame)
         {
             gameTimer.Update();
         }
 
-        if (isSliderAtDestination == false)
-            UpdateSliderMovement();
-        else
-            roundIntroTimer.Update();
+        if (currentGameState == GameState.Intro || currentGameState == GameState.InGame)
+        {
+            if (isSliderAtDestination == false)
+                UpdateSliderMovement();
+            else
+                roundIntroTimer.Update();
+        }
 	}
+
+    public void StartIntro() //Called after the players have joined.
+    {
+        roundIntroTimer = new Timer(INTRO_TIME);
+        isSliderAtDestination = false;
+        ResetIntro();
+
+        //Establish the player inputs from the join menu.
+        for (int i = 0; i < playerArray.Length; i++)
+        {
+            playerArray[i].GetComponent<PlayerScript>().AssignInput();
+        }
+
+        //Establish Pause Menu input.
+        pauseMenu.GetComponent<PauseMenuScript>().EstablishInput();
+    }
 
     public void AdjustScore(int playerNum, int scoreToAdd)
     {
@@ -219,6 +253,8 @@ public class GameManager : MonoBehaviour
 
             sliderDestination = sliderStartPos;
             isSliderAtDestination = false;
+
+            currentGameState = GameState.InGame;
         } 
     }
 
@@ -321,14 +357,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void ShowHidePauseMenu(int playerNum, bool showMenu)
+    public void ShowHidePauseMenu(int playerInputID, bool showMenu)
     {
         if (showMenu == true) //The menu must be shown
         {
             isGamePaused = true;
 
             pauseMenu.GetComponent<PauseMenuScript>().TogglePauseMenu(true);
-            pauseMenu.GetComponent<PauseMenuScript>().MenuOwnerNum = playerNum;
+            pauseMenu.GetComponent<PauseMenuScript>().MenuOwnerNum = playerInputID;
         }
         else //Close the menu
         {
@@ -336,7 +372,7 @@ public class GameManager : MonoBehaviour
                 isGamePaused = false;
 
             pauseMenu.GetComponent<PauseMenuScript>().TogglePauseMenu(false);
-            pauseMenu.GetComponent<PauseMenuScript>().MenuOwnerNum = 0;
+            pauseMenu.GetComponent<PauseMenuScript>().MenuOwnerNum = -1;
         }
     }
 

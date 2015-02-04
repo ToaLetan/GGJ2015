@@ -16,14 +16,14 @@ public class PauseMenuScript : MonoBehaviour
     private Color hide = new Color(0, 0, 0, 0);
 
     private int currentSelectionID = 0;
-    private int menuOwnerNum = 0;
+    private int menuOwnerInputID = -1;
 
     private bool hasMovedThumbstick = false;
 
     public int MenuOwnerNum
     {
-        get { return menuOwnerNum; }
-        set { menuOwnerNum = value; }
+        get { return menuOwnerInputID; }
+        set { menuOwnerInputID = value; }
     }
 
 	// Use this for initialization
@@ -32,9 +32,6 @@ public class PauseMenuScript : MonoBehaviour
         gameManager = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GameManager>();
 
         inputManager = InputManager.Instance;
-
-        inputManager.Button_Pressed += ProcessButtons;
-        inputManager.Left_Thumbstick_Axis += ProcessThumbstick;
 
         gameManager.GameRestart += OnGameReset;
 
@@ -85,9 +82,9 @@ public class PauseMenuScript : MonoBehaviour
 
     private void ProcessButtons(List<string> buttonsPressed)
     {
-        if (gameManager.IsGamePaused == true && menuOwnerNum != 0)
+        if (gameManager.IsGamePaused == true && menuOwnerInputID != -1)
         {
-            if (buttonsPressed.Contains(inputManager.ControllerArray[menuOwnerNum - 1].buttonA) )
+            if (buttonsPressed.Contains(inputManager.ControllerArray[menuOwnerInputID].buttonA) )
             {
                 HandleSelection(currentSelectionID);
             }
@@ -96,9 +93,9 @@ public class PauseMenuScript : MonoBehaviour
 
     private void ProcessThumbstick(int controllerNum, Vector2 axisValues)
     {
-        if (controllerNum == menuOwnerNum)
+        if ((controllerNum - 1) == menuOwnerInputID)
         {
-            if (axisValues.y < -THUMBSTICK_DEADZONE && hasMovedThumbstick == false)
+            if (axisValues.y < -THUMBSTICK_DEADZONE && hasMovedThumbstick == false) //Move down
             {
                 hasMovedThumbstick = true;
                 currentSelectionID++;
@@ -108,7 +105,7 @@ public class PauseMenuScript : MonoBehaviour
 
                 PositionCursor(currentSelectionID);
             }
-            else if (axisValues.y > THUMBSTICK_DEADZONE && hasMovedThumbstick == false)
+            else if (axisValues.y > THUMBSTICK_DEADZONE && hasMovedThumbstick == false) //Move up
             {
                 hasMovedThumbstick = true;
                 currentSelectionID--;
@@ -125,6 +122,35 @@ public class PauseMenuScript : MonoBehaviour
         }
     }
 
+    private void ProcessPressedKeys(List<string> keysPressed)
+    {
+        if (gameManager.IsGamePaused == true && menuOwnerInputID != -1)
+        {
+            if (keysPressed.Contains(inputManager.KeybindArray[0].downKey.ToString()) || keysPressed.Contains(inputManager.KeybindArray[1].downKey.ToString()))
+            {
+                currentSelectionID++;
+
+                if (currentSelectionID >= menuOptions.Length)
+                    currentSelectionID = 0;
+
+                PositionCursor(currentSelectionID);
+            }
+            else if (keysPressed.Contains(inputManager.KeybindArray[0].upKey.ToString()) || keysPressed.Contains(inputManager.KeybindArray[1].upKey.ToString()))
+            {
+                currentSelectionID--;
+
+                if (currentSelectionID < 0)
+                    currentSelectionID = menuOptions.Length - 1;
+
+                PositionCursor(currentSelectionID);
+            }
+
+            if (keysPressed.Contains(inputManager.KeybindArray[0].buttonAKey.ToString()) || keysPressed.Contains(inputManager.KeybindArray[1].buttonAKey.ToString()))
+                HandleSelection(currentSelectionID);
+        }
+        
+    }
+
     private void PositionCursor(int cursorIndex)
     {
         Vector3 newCursorPos = cursor.transform.position;
@@ -139,7 +165,7 @@ public class PauseMenuScript : MonoBehaviour
         switch(cursorIndex)
         {
             case 0: //Resume the game
-                gameManager.ShowHidePauseMenu(menuOwnerNum, false);
+                gameManager.ShowHidePauseMenu(menuOwnerInputID, false);
                 break;
             case 1: //Restart the game
                 gameManager.RestartGame();
@@ -152,7 +178,27 @@ public class PauseMenuScript : MonoBehaviour
 
     private void OnGameReset()
     {
-        inputManager.Button_Pressed -= ProcessButtons;
-        inputManager.Left_Thumbstick_Axis -= ProcessThumbstick;
+        if (gameManager.PlayerInputSources[0].Contains("Keybinds") || gameManager.PlayerInputSources[1].Contains("Keybinds")) //Subscribe to all keyboard-related events
+        {
+            inputManager.Key_Pressed -= ProcessPressedKeys;
+        }
+        if (gameManager.PlayerInputSources[0].Contains("GamepadControls") || gameManager.PlayerInputSources[1].Contains("GamepadControls")) //Subscribe to all controller-related events
+        {
+            inputManager.Button_Pressed -= ProcessButtons;
+            inputManager.Left_Thumbstick_Axis -= ProcessThumbstick;
+        }
+    }
+
+    public void EstablishInput()
+    {
+        if (gameManager.PlayerInputSources[0].Contains("Keybinds") || gameManager.PlayerInputSources[1].Contains("Keybinds") ) //Subscribe to all keyboard-related events
+        {
+            inputManager.Key_Pressed += ProcessPressedKeys;
+        }
+        if (gameManager.PlayerInputSources[0].Contains("GamepadControls") || gameManager.PlayerInputSources[1].Contains("GamepadControls") ) //Subscribe to all controller-related events
+        {
+            inputManager.Button_Pressed += ProcessButtons;
+            inputManager.Left_Thumbstick_Axis += ProcessThumbstick;
+        }
     }
 }

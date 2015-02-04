@@ -1,0 +1,9 @@
+E:\Game Jams\GGJ2015\Temp\UnityVS_bin\Debug\Assembly-CSharp.dll
+E:\Game Jams\GGJ2015\Temp\UnityVS_bin\Debug\Assembly-CSharp.pdb
+E:\Game Jams\GGJ2015\Temp\UnityVS_bin\Debug\UnityEditor.dll
+E:\Game Jams\GGJ2015\Temp\UnityVS_bin\Debug\UnityEngine.dll
+E:\Game Jams\GGJ2015\Temp\UnityVS_bin\Debug\UnityEngine.xml
+E:\Game Jams\GGJ2015\Temp\UnityVS_bin\Debug\UnityEditor.xml
+E:\Game Jams\GGJ2015\obj\Debug\UnityVS.GGJ2015.CSharp.csprojResolveAssemblyReference.cache
+E:\Game Jams\GGJ2015\obj\Debug\Assembly-CSharp.dll
+E:\Game Jams\GGJ2015\obj\Debug\Assembly-CSharp.pdb

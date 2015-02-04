@@ -31,6 +31,27 @@ public struct GamepadControls
     public int controllerNumber;
 }
 
+public struct Keybinds
+{
+    //Tentacle selection, ABXY equivalents
+    public KeyCode buttonAKey;
+    public KeyCode buttonBKey;
+    public KeyCode buttonXKey;
+    public KeyCode buttonYKey;
+
+    //Movement keys, equivalent to the thumbstick
+    public KeyCode upKey;
+    public KeyCode downKey;
+    public KeyCode leftKey;
+    public KeyCode rightKey;
+
+    //RightTrigger equivalent
+    public KeyCode rightTriggerKey;
+
+    //Start equivalent
+    public KeyCode startKey;
+}
+
 public class InputManager
 {
     //Input Constants
@@ -58,6 +79,7 @@ public class InputManager
 
     private const string CONTROLLER_NAME = "Controller";
 
+    //Controller events
     public delegate void ButtonPressEvent(List<string> buttonsPressed);
     public delegate void ButtonHoldEvent(List<string> buttonsHeld);
     public delegate void ButtonReleaseEvent(List<string> buttonsReleased);
@@ -75,7 +97,17 @@ public class InputManager
     public event TriggerEvent Left_Trigger_Axis;
     public event TriggerEvent Right_Trigger_Axis;
 
+    //Keyboard events
+    public delegate void KeyPressEvent(List<string> keysPressed);
+    public delegate void KeyHoldEvent(List<string> keysHeld);
+    public delegate void KeyReleaseEvent(List<string> keysReleased);
+
+    public event KeyPressEvent Key_Pressed;
+    public event KeyHoldEvent Key_Held;
+    public event KeyReleaseEvent Key_Released;
+
     public GamepadControls[] ControllerArray = new GamepadControls[2]; //Supporting two controllers.
+    public Keybinds[] KeybindArray = new Keybinds[2]; //Supporting two keyboard users.
 
     private static InputManager instance = null;
 
@@ -92,6 +124,7 @@ public class InputManager
     // Use this for initialization
     public InputManager() 
     {
+        //Establish controller buttons.
         for (int i = 0; i < ControllerArray.Length; i++)
         {
             ControllerArray[i].controllerNumber = i + 1;
@@ -118,15 +151,47 @@ public class InputManager
             ControllerArray[i].dPadHorizontal = ControllerArray[i].controllerIdentifier + DPAD_HORIZONTAL;
             ControllerArray[i].dPadVertical = ControllerArray[i].controllerIdentifier + DPAD_VERTICAL;
         }
+
+        //Establish keybinds. 0 Is left side, 1 is right side of keyboard.
+        //Keyboard Left side
+        KeybindArray[0].buttonAKey = KeyCode.Alpha7;
+        KeybindArray[0].buttonBKey = KeyCode.Alpha8;
+        KeybindArray[0].buttonXKey = KeyCode.Alpha9;
+        KeybindArray[0].buttonYKey = KeyCode.Alpha0;
+
+        KeybindArray[0].upKey = KeyCode.W;
+        KeybindArray[0].downKey = KeyCode.S;
+        KeybindArray[0].leftKey = KeyCode.A;
+        KeybindArray[0].rightKey = KeyCode.D;
+
+        KeybindArray[0].rightTriggerKey = KeyCode.Space;
+
+        KeybindArray[0].startKey = KeyCode.Escape;
+
+        //Keyboard Right side
+        KeybindArray[1].buttonAKey = KeyCode.Keypad7;
+        KeybindArray[1].buttonBKey = KeyCode.Keypad8;
+        KeybindArray[1].buttonXKey = KeyCode.Keypad9;
+        KeybindArray[1].buttonYKey = KeyCode.KeypadPlus;
+
+        KeybindArray[1].upKey = KeyCode.UpArrow;
+        KeybindArray[1].downKey = KeyCode.DownArrow;
+        KeybindArray[1].leftKey = KeyCode.LeftArrow;
+        KeybindArray[1].rightKey = KeyCode.RightArrow;
+
+        KeybindArray[1].rightTriggerKey = KeyCode.Keypad0;
+
+        KeybindArray[1].startKey = KeyCode.Return;
     }
     
     // Update is called once per frame
     public void Update () 
     {
-        UpdateInput();
+        UpdateButtonInput();
+        UpdateKeyboardInput();
     }
 
-    private void UpdateInput()
+    private void UpdateButtonInput()
     {
         for (int i = 0; i < ControllerArray.Length; i++)
         {
@@ -257,4 +322,113 @@ public class InputManager
             //=================================================================================
         }
     }
+    private void UpdateKeyboardInput()
+    {
+        for (int i = 0; i < KeybindArray.Length; i++)
+        {
+
+            //========================== Pressed Keys ==========================
+            List<string> allKeysPressed = new List<string>();
+
+            if (Input.GetKeyDown(KeybindArray[i].buttonAKey))
+                allKeysPressed.Add(KeybindArray[i].buttonAKey.ToString());
+            if (Input.GetKeyDown(KeybindArray[i].buttonBKey))
+                allKeysPressed.Add(KeybindArray[i].buttonBKey.ToString());
+            if (Input.GetKeyDown(KeybindArray[i].buttonXKey))
+                allKeysPressed.Add(KeybindArray[i].buttonXKey.ToString());
+            if (Input.GetKeyDown(KeybindArray[i].buttonYKey))
+                allKeysPressed.Add(KeybindArray[i].buttonYKey.ToString());
+
+            if (Input.GetKeyDown(KeybindArray[i].upKey))
+                allKeysPressed.Add(KeybindArray[i].upKey.ToString());
+            if (Input.GetKeyDown(KeybindArray[i].downKey))
+                allKeysPressed.Add(KeybindArray[i].downKey.ToString());
+            if (Input.GetKeyDown(KeybindArray[i].leftKey))
+                allKeysPressed.Add(KeybindArray[i].leftKey.ToString());
+            if (Input.GetKeyDown(KeybindArray[i].rightKey))
+                allKeysPressed.Add(KeybindArray[i].rightKey.ToString());
+
+            if (Input.GetKeyDown(KeybindArray[i].rightTriggerKey))
+                allKeysPressed.Add(KeybindArray[i].rightTriggerKey.ToString());
+
+            if (Input.GetKeyDown(KeybindArray[i].startKey))
+                allKeysPressed.Add(KeybindArray[i].startKey.ToString());
+
+            if (allKeysPressed.Count > 0)
+            {
+                if (Key_Pressed != null)
+                    Key_Pressed(allKeysPressed);
+            }
+            //=================================================================================
+
+            //========================== Held Keys ==========================
+            List<string> allKeysHeld = new List<string>();
+
+            if (Input.GetKey(KeybindArray[i].buttonAKey))
+                allKeysHeld.Add(KeybindArray[i].buttonAKey.ToString());
+            if (Input.GetKey(KeybindArray[i].buttonBKey))
+                allKeysHeld.Add(KeybindArray[i].buttonBKey.ToString());
+            if (Input.GetKey(KeybindArray[i].buttonXKey))
+                allKeysHeld.Add(KeybindArray[i].buttonXKey.ToString());
+            if (Input.GetKey(KeybindArray[i].buttonYKey))
+                allKeysHeld.Add(KeybindArray[i].buttonYKey.ToString());
+
+            if (Input.GetKey(KeybindArray[i].upKey))
+                allKeysHeld.Add(KeybindArray[i].upKey.ToString());
+            if (Input.GetKey(KeybindArray[i].downKey))
+                allKeysHeld.Add(KeybindArray[i].downKey.ToString());
+            if (Input.GetKey(KeybindArray[i].leftKey))
+                allKeysHeld.Add(KeybindArray[i].leftKey.ToString());
+            if (Input.GetKey(KeybindArray[i].rightKey))
+                allKeysHeld.Add(KeybindArray[i].rightKey.ToString());
+
+            if (Input.GetKey(KeybindArray[i].rightTriggerKey))
+                allKeysHeld.Add(KeybindArray[i].rightTriggerKey.ToString());
+
+            if (Input.GetKey(KeybindArray[i].startKey))
+                allKeysHeld.Add(KeybindArray[i].startKey.ToString());
+
+            if (allKeysHeld.Count > 0)
+            {
+                if (Key_Held != null)
+                    Key_Held(allKeysHeld);
+            }
+            //=================================================================================
+
+            //========================== Released Keys ==========================
+            List<string> allKeysReleased = new List<string>();
+
+            if (!Input.GetKey(KeybindArray[i].buttonAKey))
+                allKeysReleased.Add(KeybindArray[i].buttonAKey.ToString());
+            if (!Input.GetKey(KeybindArray[i].buttonBKey))
+                allKeysReleased.Add(KeybindArray[i].buttonBKey.ToString());
+            if (!Input.GetKey(KeybindArray[i].buttonXKey))
+                allKeysReleased.Add(KeybindArray[i].buttonXKey.ToString());
+            if (!Input.GetKey(KeybindArray[i].buttonYKey))
+                allKeysReleased.Add(KeybindArray[i].buttonYKey.ToString());
+
+            if (!Input.GetKey(KeybindArray[i].upKey))
+                allKeysReleased.Add(KeybindArray[i].upKey.ToString());
+            if (!Input.GetKey(KeybindArray[i].downKey))
+                allKeysReleased.Add(KeybindArray[i].downKey.ToString());
+            if (!Input.GetKey(KeybindArray[i].leftKey))
+                allKeysReleased.Add(KeybindArray[i].leftKey.ToString());
+            if (!Input.GetKey(KeybindArray[i].rightKey))
+                allKeysReleased.Add(KeybindArray[i].rightKey.ToString());
+
+            if (!Input.GetKey(KeybindArray[i].rightTriggerKey))
+                allKeysReleased.Add(KeybindArray[i].rightTriggerKey.ToString());
+
+            if (!Input.GetKey(KeybindArray[i].startKey))
+                allKeysReleased.Add(KeybindArray[i].startKey.ToString());
+
+            if (allKeysReleased.Count > 0)
+            {
+                if (Key_Released != null)
+                    Key_Released(allKeysReleased);
+            }
+            //=================================================================================
+        }
+    }
+
 }
