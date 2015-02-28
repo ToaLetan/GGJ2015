@@ -154,32 +154,32 @@ public class InputManager
 
         //Establish keybinds. 0 Is left side, 1 is right side of keyboard.
         //Keyboard Left side
-        KeybindArray[0].buttonAKey = KeyCode.Alpha7;
-        KeybindArray[0].buttonBKey = KeyCode.Alpha8;
-        KeybindArray[0].buttonXKey = KeyCode.Alpha9;
-        KeybindArray[0].buttonYKey = KeyCode.Alpha0;
+        KeybindArray[0].buttonAKey = KeyCode.Alpha1;
+        KeybindArray[0].buttonBKey = KeyCode.Alpha2;
+        KeybindArray[0].buttonXKey = KeyCode.Alpha3;
+        KeybindArray[0].buttonYKey = KeyCode.Alpha4;
 
         KeybindArray[0].upKey = KeyCode.W;
         KeybindArray[0].downKey = KeyCode.S;
         KeybindArray[0].leftKey = KeyCode.A;
         KeybindArray[0].rightKey = KeyCode.D;
 
-        KeybindArray[0].rightTriggerKey = KeyCode.Space;
+        KeybindArray[0].rightTriggerKey = KeyCode.F;
 
         KeybindArray[0].startKey = KeyCode.Escape;
 
         //Keyboard Right side
-        KeybindArray[1].buttonAKey = KeyCode.Keypad7;
-        KeybindArray[1].buttonBKey = KeyCode.Keypad8;
-        KeybindArray[1].buttonXKey = KeyCode.Keypad9;
-        KeybindArray[1].buttonYKey = KeyCode.KeypadPlus;
+        KeybindArray[1].buttonAKey = KeyCode.Alpha7;
+        KeybindArray[1].buttonBKey = KeyCode.Alpha8;
+        KeybindArray[1].buttonXKey = KeyCode.Alpha9;
+        KeybindArray[1].buttonYKey = KeyCode.Alpha0;
 
-        KeybindArray[1].upKey = KeyCode.UpArrow;
-        KeybindArray[1].downKey = KeyCode.DownArrow;
-        KeybindArray[1].leftKey = KeyCode.LeftArrow;
-        KeybindArray[1].rightKey = KeyCode.RightArrow;
+        KeybindArray[1].upKey = KeyCode.I;
+        KeybindArray[1].downKey = KeyCode.K;
+        KeybindArray[1].leftKey = KeyCode.J;
+        KeybindArray[1].rightKey = KeyCode.L;
 
-        KeybindArray[1].rightTriggerKey = KeyCode.Keypad0;
+        KeybindArray[1].rightTriggerKey = KeyCode.Semicolon;
 
         KeybindArray[1].startKey = KeyCode.Return;
     }

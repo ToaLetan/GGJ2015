@@ -304,12 +304,7 @@ public class PlayerScript : MonoBehaviour
         if(currentInputSource == InputSource.Controller)
             buttonPrompts[currentActiveButtonIndex].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Button_" + button);
         else if (currentInputSource == InputSource.Keyboard)
-        {
-            if (currentActiveButtonIndex == 3) //Y has two different keys depending on numpad or alphanumeric.
-                buttonPrompts[currentActiveButtonIndex].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Key_" + button + (playerInputID + 1));
-            else
-                buttonPrompts[currentActiveButtonIndex].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Key_" + button);
-        }
+            buttonPrompts[currentActiveButtonIndex].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Active_Key_" + button + (playerInputID + 1));
             
 
         //Loop through the other buttons and de-highlight any that were previously highlighted
@@ -342,12 +337,7 @@ public class PlayerScript : MonoBehaviour
                     if(currentInputSource == InputSource.Controller)
                         buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Button_" + currentButton);
                     else if (currentInputSource == InputSource.Keyboard)
-                    {
-                        if (currentButton == 'Y')
-                            buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton + (playerInputID + 1));
-                        else
-                            buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton);
-                    }
+                        buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton + (playerInputID + 1));
                 }
             }
         }
@@ -448,12 +438,7 @@ public class PlayerScript : MonoBehaviour
                         if(currentInputSource == InputSource.Controller)
                             buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Button_" + currentButton);
                         else if (currentInputSource == InputSource.Keyboard)
-                        {
-                            if(currentButton == 'Y')
-                                buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton + (playerInputID + 1) );
-                            else
-                                buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton);
-                        }
+                            buttonPrompts[i].GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton + (playerInputID + 1) );
                     }
             }
         }

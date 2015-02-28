@@ -10,6 +10,7 @@ public class JoinMenuScript : MonoBehaviour
     private InputManager inputManager = null;
 
     private GameObject[] joinPrompts = new GameObject[2];
+    private GameObject[] animatedPrompts = new GameObject[2];
     private GameObject[] okPrompts = new GameObject[2];
 
     private bool[] playerJoined = new bool[2];
@@ -34,6 +35,8 @@ public class JoinMenuScript : MonoBehaviour
         for (int i = 0; i < joinPrompts.Length; i++)
         {
             joinPrompts[i] = gameObject.transform.FindChild("Prompt_Join" + (i+1) ).gameObject;
+
+            animatedPrompts[i] = gameObject.transform.FindChild("Prompt_Anim" + (i + 1)).gameObject;
 
             okPrompts[i] = gameObject.transform.FindChild("Text_OK" + (i + 1)).gameObject;
             okPrompts[i].transform.GetComponent<SpriteRenderer>().color = hide;
@@ -111,7 +114,12 @@ public class JoinMenuScript : MonoBehaviour
 
     private void HideJoinPrompt(int index)
     {
+        //Hide the prompts, disable the animated prompt and hide it. Show the "OK!" message.
         joinPrompts[index].GetComponent<SpriteRenderer>().color = hide;
+
+        animatedPrompts[index].GetComponent<Animator>().enabled = false;
+        animatedPrompts[index].GetComponent<SpriteRenderer>().color = hide;
+
         okPrompts[index].GetComponent<SpriteRenderer>().color = Color.white;
     }
 

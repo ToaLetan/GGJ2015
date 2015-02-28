@@ -1,4 +1,4 @@
-Initialize engine version: 4.6.1f1 (d1db7a1b5196)
+Initialize engine version: 4.6.2f1 (bd99309c2ad7)
 GfxDevice: creating device client; threaded=1
 Direct3D:
     Version:  Direct3D 11.0 [level 11.0]
@@ -12,7 +12,7 @@ Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\Assembly-C
 Loading E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
 Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.UI.dll (this message is harmless)
 Loading E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
-- Completed reload, in  0.084 seconds
+- Completed reload, in  0.068 seconds
 desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
