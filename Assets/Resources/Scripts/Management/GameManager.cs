@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour 
 {
-    public const float ROUND_LENGTH = 150; //Rounds are 2 minutes 30 seconds.
+    public const float ROUND_LENGTH = 150; //Rounds are 2 minutes 30 seconds. //150
     public const float NUM_ROUNDS = 3; //Play up to 3 rounds max.
 
     private const float ICON_OFFSET = 22.0f;
@@ -101,7 +101,6 @@ public class GameManager : MonoBehaviour
 	void Start () 
     {
         inputManager = InputManager.Instance;
-
 
         for (int i = 0; i < NUM_OF_PLAYERS; i++)
         {
@@ -236,6 +235,8 @@ public class GameManager : MonoBehaviour
             isGamePaused = true;
 
             pizzaManager.ResetPizzaSpawns();
+
+            ResetPlayers();
         }
         else //The game is over, play the ending.
         {
@@ -344,6 +345,24 @@ public class GameManager : MonoBehaviour
 
         GameObject sliderText = sliderUI.transform.FindChild("Slider_Text").gameObject;
         sliderText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Ready");
+    }
+
+    private void ResetPlayers() //Clear any held slices on players, reset prefabs
+    {
+        for (int i = 0; i < playerArray.Length; i++)
+        {
+            Vector2 playerPosition = playerArray[i].transform.position;
+
+            //Destroy(playerArray[i]);
+            playerArray[i].GetComponent<PlayerScript>().DestroyPlayer();
+
+            //Reinstantiate the player prefabs and assign their input
+            playerArray[i] = GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/Player_" + (i+1) ), playerPosition, Quaternion.identity);
+
+            PlayerScript newPlayerScript = playerArray[i].GetComponent<PlayerScript>();
+            newPlayerScript.InitPlayer();
+            newPlayerScript.AssignInput();
+        }
     }
 
     private void DisplayWinner()

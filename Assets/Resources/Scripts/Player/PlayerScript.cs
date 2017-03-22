@@ -23,6 +23,7 @@ public class PlayerScript : MonoBehaviour
     private SpriteRenderer triggerPromptRenderer = null;
     private SpriteRenderer triggerPromptTextRenderer = null;
 
+    private GameObject[] tentacles = new GameObject[4];
     private GameObject activeTentacle = null;
     private GameObject tentacleGrabber = null;
     private Rigidbody2D tentacleGrabberRigidbody = null;
@@ -50,30 +51,58 @@ public class PlayerScript : MonoBehaviour
 	// Use this for initialization
 	void Start () 
     {
-        inputManager = InputManager.Instance;
-        gameManager = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GameManager>();
+        InitPlayer();
+    }
 
-        gameManager.GameRestart += OnGameReset;
+    public void InitPlayer()
+    {
+        if (gameManager == null)
+            gameManager = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GameManager>();
+
+        if (inputManager == null)
+            inputManager = InputManager.Instance;
+
+        tentacles[0] = gameObject.transform.FindChild("Tentacle_A").gameObject;
+        tentacles[1] = gameObject.transform.FindChild("Tentacle_B").gameObject;
+        tentacles[2] = gameObject.transform.FindChild("Tentacle_X").gameObject;
+        tentacles[3] = gameObject.transform.FindChild("Tentacle_Y").gameObject;
 
         //Get the button prompts attached to each tentacle's first link.
-        buttonPrompts[0] = gameObject.transform.FindChild("Tentacle_A").FindChild("Tentacle_Link_0").GetChild(0).gameObject;
-        buttonPrompts[1] = gameObject.transform.FindChild("Tentacle_B").FindChild("Tentacle_Link_0").GetChild(0).gameObject;
-        buttonPrompts[2] = gameObject.transform.FindChild("Tentacle_X").FindChild("Tentacle_Link_0").GetChild(0).gameObject;
-        buttonPrompts[3] = gameObject.transform.FindChild("Tentacle_Y").FindChild("Tentacle_Link_0").GetChild(0).gameObject;
-
         for (int i = 0; i < buttonPrompts.Length; i++)
         {
+            buttonPrompts[i] = tentacles[i].transform.FindChild("Tentacle_Link_0").GetChild(0).gameObject;
             buttonPromptRenderers[i] = buttonPrompts[i].GetComponent<SpriteRenderer>();
         }
 
+        GameObject camera = GameObject.FindGameObjectWithTag("MainCamera");
 
-        if(triggerPrompt != null)
+        triggerPrompt = camera.transform.FindChild("HUD Bottom Frame").FindChild("RT_Prompt_Player_" + PlayerNum).gameObject;
+
+        if (triggerPrompt != null)
         {
             triggerPromptRenderer = triggerPrompt.transform.GetComponent<SpriteRenderer>();
             triggerPromptTextRenderer = triggerPrompt.transform.GetChild(0).GetComponent<SpriteRenderer>();
             triggerPromptRenderer.enabled = false;
             triggerPromptTextRenderer.enabled = false;
         }
+    }
+
+    public void DestroyPlayer()
+    {
+        gameManager.GameRestart -= OnGameReset;
+        inputManager.Key_Held -= ProcessHeldKeys;
+        inputManager.Key_Pressed -= ProcessPressedKeys;
+        inputManager.Key_Released -= ProcessReleasedKeys;
+        inputManager.Left_Thumbstick_Axis -= ProcessThumbstickMovement;
+        inputManager.Button_Pressed -= ProcessButtonPresses;
+        inputManager.Right_Trigger_Axis -= ProcessTrigger;
+
+        for (int i = 0; i < tentacles.Length; i++)
+            tentacles[i].transform.FindChild("Tentacle_Grabber").GetComponent<GrabScript>().OnGrabEnter -= HighlightTriggerPrompt;
+
+        //tentacleGrabber.GetComponent<GrabScript>().OnGrabEnter -= HighlightTriggerPrompt;
+
+        Destroy(gameObject);
     }
 	
 	// Update is called once per frame
@@ -415,6 +444,9 @@ public class PlayerScript : MonoBehaviour
 
     public void AssignInput()
     {
+        if (gameManager.PlayerInputSources[PlayerNum - 1] == null)
+            Debug.Log("Player Input Source is null"); 
+
         playerInputID = int.Parse(gameManager.PlayerInputSources[PlayerNum - 1].Substring(gameManager.PlayerInputSources[PlayerNum - 1].IndexOf(" ") ) );
 
         if (gameManager.PlayerInputSources[PlayerNum - 1].Contains("Keybinds"))

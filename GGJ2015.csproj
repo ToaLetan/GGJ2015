@@ -81,6 +81,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\PowerSpriteAnimator\Scripts\SpriteAnim.cs" />
+    <Compile Include="Assets\PowerSpriteAnimator\Scripts\SpriteAnimEventHandler.cs" />
     <Compile Include="Assets\Resources\Scripts\Management\GameManager.cs" />
     <Compile Include="Assets\Resources\Scripts\Management\GameTimer.cs" />
     <Compile Include="Assets\Resources\Scripts\Management\InputManager.cs" />

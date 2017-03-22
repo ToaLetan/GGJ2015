@@ -166,7 +166,7 @@ public class InputManager
 
         KeybindArray[0].rightTriggerKey = KeyCode.F;
 
-        KeybindArray[0].startKey = KeyCode.Escape;
+        KeybindArray[0].startKey = KeyCode.Return;
 
         //Keyboard Right side
         KeybindArray[1].buttonAKey = KeyCode.Alpha7;
@@ -181,7 +181,7 @@ public class InputManager
 
         KeybindArray[1].rightTriggerKey = KeyCode.Semicolon;
 
-        KeybindArray[1].startKey = KeyCode.Return;
+        KeybindArray[1].startKey = KeyCode.Escape;
     }
     
     // Update is called once per frame
