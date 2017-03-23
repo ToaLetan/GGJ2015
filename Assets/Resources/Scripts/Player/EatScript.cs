@@ -27,7 +27,7 @@ public class EatScript : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collisionObj)
     {
-        if (collisionObj.tag == "Pizza" && thePlayer.ActiveTentacle != null)
+        if (collisionObj.tag == "Pizza" && thePlayer.ActiveTentacles != null)
         {
             GrabScript parentTentacleScript = collisionObj.transform.parent.GetComponent<GrabScript>();
 

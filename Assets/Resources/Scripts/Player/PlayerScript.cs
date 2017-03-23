@@ -23,23 +23,25 @@ public class PlayerScript : MonoBehaviour
     private SpriteRenderer triggerPromptRenderer = null;
     private SpriteRenderer triggerPromptTextRenderer = null;
 
-    private GameObject[] tentacles = new GameObject[4];
-    private GameObject activeTentacle = null;
-    private GameObject tentacleGrabber = null;
-    private Rigidbody2D tentacleGrabberRigidbody = null;
+    private List<GameObject> activeTentacles = new List<GameObject>(); //All tentacles that have been selected
+    private List<GameObject> activeTentacleGrabbers = new List<GameObject>(); //All endpoints of the selected tentacles
+    private List<Rigidbody2D> activeTentacleGrabbersRigidbodies = new List<Rigidbody2D>(); //Rigidbodies of the selected tentacle endpoints
+    private List<GrabScript> activeTentaclesScripts = new List<GrabScript>(); //GrabScripts of the selected tentacle endpoints
+
+    private GameObject[] tentacles = new GameObject[4]; //Every tentacle connected to the squid obj
 
     private InputSource currentInputSource;
 
     private int playerInputID = 0;
 
-    public GameObject ActiveTentacle
+    public List<GameObject> ActiveTentacles
     {
-        get { return activeTentacle; }
+        get { return activeTentacles; }
     }
 
-    public GameObject TentacleGrabber
+    public List<GameObject> ActiveTentacleGrabbers
     {
-        get { return tentacleGrabber; }
+        get { return activeTentacleGrabbers; }
     }
 
     public int PlayerInputID
@@ -100,8 +102,6 @@ public class PlayerScript : MonoBehaviour
         for (int i = 0; i < tentacles.Length; i++)
             tentacles[i].transform.FindChild("Tentacle_Grabber").GetComponent<GrabScript>().OnGrabEnter -= HighlightTriggerPrompt;
 
-        //tentacleGrabber.GetComponent<GrabScript>().OnGrabEnter -= HighlightTriggerPrompt;
-
         Destroy(gameObject);
     }
 	
@@ -115,14 +115,19 @@ public class PlayerScript : MonoBehaviour
     {
         if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
         {
-            if ((controllerNum - 1) == playerInputID && activeTentacle != null)
+            if ((controllerNum - 1) == playerInputID && activeTentacles != null)
             {
                 if (thumbstickPosition != Vector2.zero)
                 {
-                    tentacleGrabber.transform.position += new Vector3(thumbstickPosition.x, thumbstickPosition.y, 0) * MOVE_SPEED * Time.deltaTime;
+                    for (int i = 0; i < activeTentacleGrabbers.Count; i++)
+                        activeTentacleGrabbersRigidbodies[i].AddForce(new Vector2(thumbstickPosition.x, thumbstickPosition.y) * MOVE_SPEED * Time.deltaTime);
+                    //activeTentacleGrabbers[i].transform.position += new Vector3(thumbstickPosition.x, thumbstickPosition.y, 0) * MOVE_SPEED * Time.deltaTime;
                 }
                 else
-                    tentacleGrabberRigidbody.angularVelocity = 0;
+                {
+                    for (int i = 0; i < activeTentacleGrabbersRigidbodies.Count; i++)
+                        activeTentacleGrabbersRigidbodies[i].angularVelocity = 0;
+                }
             }
         }
     }
@@ -163,7 +168,7 @@ public class PlayerScript : MonoBehaviour
         {
             if ((controllerNum - 1) == playerInputID && triggerValue < 0.0f)
             {
-                if (activeTentacle != null)
+                if (activeTentacles.Count > 0)
                 {
                     Grab();
 
@@ -174,16 +179,17 @@ public class PlayerScript : MonoBehaviour
             }
             if (controllerNum == PlayerNum && triggerValue >= 0.0f) //Let go of the platter if previously holding it.
             {
-                if (activeTentacle != null)
+                for (int i = 0; i < activeTentaclesScripts.Count; i++)
                 {
-                    if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == true)
-                        tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = false;
+                    if (activeTentaclesScripts[i].IsHoldingPlatter == true)
+                        activeTentaclesScripts[i].IsHoldingPlatter = false;
 
                     //Highlight RT
                     //triggerPromptRenderer.sprite = Resources.Load<Sprite>("Sprites/UI/Trigger_Right");
-                    triggerPromptRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_ButtonPrompts", "Trigger_Right");
+                    
                 }
             }
+            triggerPromptRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_ButtonPrompts", "Trigger_Right");
         }
     }
 
@@ -191,7 +197,7 @@ public class PlayerScript : MonoBehaviour
     {
         if (gameManager.IsGamePaused == false && gameManager.IsGameOver == false)
         {
-            if (activeTentacle != null)
+            for (int i = 0; i < activeTentacles.Count; i++)
             {
                 //If any directional keys are being held, determine a direction based on what's being held similarly to how thumbsticks go from -1 to 1.
                 if (keysHeld.Contains(inputManager.KeybindArray[playerInputID].upKey.ToString()) || keysHeld.Contains(inputManager.KeybindArray[playerInputID].downKey.ToString())
@@ -210,14 +216,14 @@ public class PlayerScript : MonoBehaviour
                         directionX += 1;
 
                     //tentacleGrabber.transform.localPosition += new Vector3(directionX, directionY, 0) * MOVE_SPEED * Time.deltaTime;
-                    tentacleGrabberRigidbody.AddForce(new Vector2(directionX, directionY) * MOVE_SPEED * Time.deltaTime);
+                    activeTentacleGrabbersRigidbodies[i].AddForce(new Vector2(directionX, directionY) * MOVE_SPEED * Time.deltaTime);
                 }
                 else
-                    tentacleGrabberRigidbody.angularVelocity = 0;
+                    activeTentacleGrabbersRigidbodies[i].angularVelocity = 0;
 
-                if(keysHeld.Contains(inputManager.KeybindArray[playerInputID].rightTriggerKey.ToString()) )
+                if (keysHeld.Contains(inputManager.KeybindArray[playerInputID].rightTriggerKey.ToString()) )
                 {
-                    if (activeTentacle != null)
+                    if (activeTentacles.Count > 0)
                     {
                         Grab();
 
@@ -264,10 +270,13 @@ public class PlayerScript : MonoBehaviour
     {
         if (keysReleased.Contains(inputManager.KeybindArray[playerInputID].rightTriggerKey.ToString())) //Let go of the held object
         {
-            if (activeTentacle != null)
+            if (activeTentacles.Count > 0)
             {
-                if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == true)
-                    tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = false;
+                for (int i = 0; i < activeTentaclesScripts.Count; i++)
+                {
+                    if (activeTentaclesScripts[i].IsHoldingPlatter == true)
+                        activeTentaclesScripts[i].IsHoldingPlatter = false;
+                }
 
                 //Highlight RT
                 // triggerPromptRenderer.sprite = Resources.Load<Sprite>("Sprites/UI/Key_RT" + (playerInputID + 1));
@@ -278,146 +287,171 @@ public class PlayerScript : MonoBehaviour
 
     private void SelectTentacle(char tentacleButton)
     {
-        if (activeTentacle != null) //If there's already a tentacle in use, de-highlight it.
+        GameObject currentSelectedTentacle = gameObject.transform.FindChild("Tentacle_" + tentacleButton).gameObject;
+
+        if (activeTentacles.Contains(currentSelectedTentacle) ) //If there's already a tentacle in use, de-highlight it.
         {
-            tentacleGrabber.GetComponent<GrabScript>().OnGrabEnter -= HighlightTriggerPrompt;
+            for (int i = 0; i < activeTentacles.Count; i++)
+            {
+                if (activeTentacles[i].name == currentSelectedTentacle.name)
+                {
+                    //Remove the highlight
+                    char buttonName = currentSelectedTentacle.name.Substring(currentSelectedTentacle.name.IndexOf('_')+1, 1)[0];
+
+                    ToggleHighlightButtonPrompt(buttonName, false);
+
+                    //Unsub from the OnGrabEnter event and remove the tentacle from the list
+                    activeTentaclesScripts[i].OnGrabEnter -= HighlightTriggerPrompt;
+                    activeTentacles.Remove(activeTentacles[i]);
+                    activeTentacleGrabbers.Remove(activeTentacleGrabbers[i]);
+                    activeTentacleGrabbersRigidbodies.Remove(activeTentacleGrabbersRigidbodies[i]);
+                    activeTentaclesScripts.Remove(activeTentaclesScripts[i]);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            //Add the active tentacle, grabber, grabber rigidbody, and grabber script to the respective lists
+            activeTentacles.Add(currentSelectedTentacle);
+            GameObject currentGrabber = currentSelectedTentacle.transform.FindChild("Tentacle_Grabber").gameObject;
+            GrabScript currentTentacleScript = currentGrabber.GetComponent<GrabScript>();
+
+            activeTentacleGrabbers.Add(currentGrabber);
+            activeTentacleGrabbersRigidbodies.Add(currentGrabber.GetComponent<Rigidbody2D>());
+            activeTentaclesScripts.Add(currentTentacleScript);
+
+            currentTentacleScript.IsTentacleActive = true;
+            currentTentacleScript.OnGrabEnter += HighlightTriggerPrompt;
+
+
+            //Highlight the selected button prompt.
+            ToggleHighlightButtonPrompt(tentacleButton, true);
         }
 
         //Get the active tentacle, the end of the tentacle, and set its script to be active.
-        activeTentacle = gameObject.transform.FindChild("Tentacle_" + tentacleButton).gameObject;
-        tentacleGrabber = activeTentacle.transform.FindChild("Tentacle_Grabber").gameObject;
+        /*activeTentacles = gameObject.transform.FindChild("Tentacle_" + tentacleButton).gameObject;
+        tentacleGrabber = activeTentacles.transform.FindChild("Tentacle_Grabber").gameObject;
         tentacleGrabberRigidbody = tentacleGrabber.GetComponent<Rigidbody2D>();
+        activeTentaclesScripts = tentacleGrabber.GetComponent<GrabScript>();
 
-        tentacleGrabber.GetComponent<GrabScript>().IsTentacleActive = true;
-        tentacleGrabber.GetComponent<GrabScript>().OnGrabEnter += HighlightTriggerPrompt;
-
-        //Highlight the selected button prompt.
-        HighlightButtonPrompt(tentacleButton);
+        activeTentaclesScripts.IsTentacleActive = true;
+        activeTentaclesScripts.OnGrabEnter += HighlightTriggerPrompt;*/
     }
 
     private void Grab()
     {
-        if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter == false
-                        && tentacleGrabber.GetComponent<GrabScript>().CollidingSlice != null)
+        for (int i = 0; i < activeTentacles.Count; i++)
         {
-            tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza = true;
 
-            if (tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.tag == "Pizza") //Grab the slice
+            if (activeTentaclesScripts[i].IsHoldingPizza == false && activeTentaclesScripts[i].IsHoldingPlatter == false
+                            && activeTentaclesScripts[i].CollidingSlice != null)
             {
-                //Disable physics on the slice.
-                GameObject.Destroy(tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<Rigidbody2D>());
-                //tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<EdgeCollider2D>().isTrigger = true;
+                activeTentaclesScripts[i].IsHoldingPizza = true;
 
-                tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.transform.parent = tentacleGrabber.transform;
+                if (activeTentaclesScripts[i].CollidingSlice.tag == "Pizza") //Grab the slice
+                {
+                    //Disable physics on the slice.
+                    //GameObject.Destroy(tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<Rigidbody2D>());
+                    //tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<EdgeCollider2D>().isTrigger = true;
+
+                    //If grabbing a slice from another tentacle, make sure to reset the tentacle's bools
+                    if (activeTentaclesScripts[i].CollidingSlice.transform.parent.tag == "Tentacle")
+                    {
+                        GrabScript sliceParentGrabScript = activeTentaclesScripts[i].CollidingSlice.transform.parent.GetComponent<GrabScript>();
+
+                        sliceParentGrabScript.IsHoldingPizza = false;
+                    }
+
+                    activeTentaclesScripts[i].CollidingSlice.transform.parent = activeTentacleGrabbers[i].transform;
+                }
             }
-        }
-        else if (tentacleGrabber.GetComponent<GrabScript>().IsHoldingPizza == false && tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter != null)
-        {
-            if (tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.tag == "Platter") //Spin the platter
+            else if (activeTentaclesScripts[i].IsHoldingPizza == false && activeTentaclesScripts[i].CollidingPlatter != null)
             {
-                tentacleGrabber.GetComponent<GrabScript>().IsHoldingPlatter = true;
+                if (activeTentaclesScripts[i].CollidingPlatter.tag == "Platter") //Spin the platter
+                {
+                    activeTentaclesScripts[i].IsHoldingPlatter = true;
 
-                Quaternion platterRotation = tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation;
+                    Quaternion platterRotation = activeTentaclesScripts[i].CollidingPlatter.transform.localRotation;
 
-                platterRotation.eulerAngles += new Vector3(0, 0, tentacleGrabber.transform.localRotation.eulerAngles.z - 180) * ROTATE_SPEED * Time.deltaTime;
+                    platterRotation.eulerAngles += new Vector3(0, 0, activeTentacleGrabbers[i].transform.localRotation.eulerAngles.z - 180) * ROTATE_SPEED * Time.deltaTime;
 
-                tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter.transform.localRotation = platterRotation;
+                    activeTentaclesScripts[i].CollidingPlatter.transform.localRotation = platterRotation;
+                }
             }
         }
     }
 
-    private void HighlightButtonPrompt(char button)
+    private void ToggleHighlightButtonPrompt(char button, bool isHighlighted)
     {
-        int currentActiveButtonIndex = 0;
+        int buttonIndex = 0;
 
         switch(button)
         {
             case 'A':
-                currentActiveButtonIndex = 0;
+                buttonIndex = 0;
                 break;
             case 'B':
-                currentActiveButtonIndex = 1;
+                buttonIndex = 1;
                 break;
             case 'X':
-                currentActiveButtonIndex = 2;
+                buttonIndex = 2;
                 break;
             case 'Y':
-                currentActiveButtonIndex = 3;
+                buttonIndex = 3;
                 break;
             default:
                 break;
         }
 
-        if(currentInputSource == InputSource.Controller)
-            buttonPromptRenderers[currentActiveButtonIndex].sprite = Resources.Load<Sprite>("Sprites/UI/Active_Button_" + button);
-        else if (currentInputSource == InputSource.Keyboard)
-            buttonPromptRenderers[currentActiveButtonIndex].sprite = Resources.Load<Sprite>("Sprites/UI/Active_Key_" + button + (playerInputID + 1));
-            
-
-        //Loop through the other buttons and de-highlight any that were previously highlighted
-        for (int i = 0; i < buttonPrompts.Length; i++)
+        if (isHighlighted)
         {
-            char currentButton = ' ';
 
-            if (i != currentActiveButtonIndex)
-            {
-                switch(i)
-                {
-                    case 0:
-                        currentButton = 'A';
-                        break;
-                    case 1:
-                        currentButton = 'B';
-                        break;
-                    case 2:
-                        currentButton = 'X';
-                        break;
-                    case 3:
-                        currentButton = 'Y';
-                        break;
-                    default:
-                        break;
-                }
-
-                if (currentButton != ' ')
-                {
-                    if(currentInputSource == InputSource.Controller)
-                        buttonPromptRenderers[i].sprite = Resources.Load<Sprite>("Sprites/UI/Button_" + currentButton);
-                    else if (currentInputSource == InputSource.Keyboard)
-                        buttonPromptRenderers[i].sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + currentButton + (playerInputID + 1));
-                }
-            }
+            if (currentInputSource == InputSource.Controller)
+                buttonPromptRenderers[buttonIndex].sprite = Resources.Load<Sprite>("Sprites/UI/Active_Button_" + button);
+            else if (currentInputSource == InputSource.Keyboard)
+                buttonPromptRenderers[buttonIndex].sprite = Resources.Load<Sprite>("Sprites/UI/Active_Key_" + button + (playerInputID + 1));
+        }
+        else
+        {
+            if (currentInputSource == InputSource.Controller)
+                buttonPromptRenderers[buttonIndex].sprite = Resources.Load<Sprite>("Sprites/UI/Button_" + button);
+            else if (currentInputSource == InputSource.Keyboard)
+                buttonPromptRenderers[buttonIndex].sprite = Resources.Load<Sprite>("Sprites/UI/Key_" + button + (playerInputID + 1));
         }
     }
 
     private void HighlightTriggerPrompt()
     {
-        if (activeTentacle != null)
+        if (activeTentacles != null)
         {
-            if (tentacleGrabber.GetComponent<GrabScript>().CollidingSlice != null) //Show "GRAB"
+            for (int i = 0; i < activeTentacles.Count; i++)
             {
-                triggerPromptTextRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Text_Grab");
-
-                if (triggerPromptRenderer.enabled == false)
+                if (activeTentaclesScripts[i].CollidingSlice != null) //Show "GRAB"
                 {
-                    triggerPromptRenderer.enabled = true;
-                    triggerPromptTextRenderer.enabled = true;
-                }
-            }
-            else if (tentacleGrabber.GetComponent<GrabScript>().CollidingPlatter != null) //Show "SPIN"
-            {
-                triggerPromptTextRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Text_Spin");
+                    triggerPromptTextRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Text_Grab");
 
-                if (triggerPromptRenderer.enabled == false)
-                {
-                    triggerPromptRenderer.enabled = true;
-                    triggerPromptTextRenderer.enabled = true;
+                    if (triggerPromptRenderer.enabled == false)
+                    {
+                        triggerPromptRenderer.enabled = true;
+                        triggerPromptTextRenderer.enabled = true;
+                    }
                 }
-            }
-            else
-            {
-                triggerPromptRenderer.enabled = false;
-                triggerPromptTextRenderer.enabled = false;
+                else if (activeTentaclesScripts[i].CollidingPlatter != null) //Show "SPIN"
+                {
+                    triggerPromptTextRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Text_Spin");
+
+                    if (triggerPromptRenderer.enabled == false)
+                    {
+                        triggerPromptRenderer.enabled = true;
+                        triggerPromptTextRenderer.enabled = true;
+                    }
+                }
+                else
+                {
+                    triggerPromptRenderer.enabled = false;
+                    triggerPromptTextRenderer.enabled = false;
+                }
             }
         }
     }

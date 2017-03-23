@@ -59,17 +59,18 @@ public class GrabScript : MonoBehaviour
     {
         if (isTentacleActive)
         {
-            if (collisionObj.gameObject.tag == "Platter")
+            if (collidingSlice == null && collisionObj.gameObject.tag == "Pizza")
             {
-                collidingPlatter = collisionObj.gameObject;
+                collidingSlice = collisionObj.gameObject;
+                //DEBUG
+                //collidingSlice.GetComponent<SpriteRenderer>().color = Color.green;
 
                 if (OnGrabEnter != null)
                     OnGrabEnter();
             }
-
-            if (collisionObj.gameObject.tag == "Pizza")
+            if (collisionObj.gameObject.tag == "Platter")
             {
-                collidingSlice = collisionObj.gameObject;
+                collidingPlatter = collisionObj.gameObject;
 
                 if (OnGrabEnter != null)
                     OnGrabEnter();
@@ -81,6 +82,15 @@ public class GrabScript : MonoBehaviour
     {
         if (isTentacleActive)
         {
+            if (collidingSlice == null && collisionObj.gameObject.tag == "Pizza")
+            {
+                collidingSlice = collisionObj.gameObject;
+                //DEBUG
+                //collidingSlice.GetComponent<SpriteRenderer>().color = Color.green;
+
+                if (OnGrabEnter != null)
+                    OnGrabEnter();
+            }
             if (collidingPlatter == null && collisionObj.gameObject.tag == "Platter")
             {
                 collidingPlatter = collisionObj.gameObject;
@@ -88,13 +98,7 @@ public class GrabScript : MonoBehaviour
                 if (OnGrabEnter != null)
                     OnGrabEnter();
             }
-            if (collidingSlice == null && collisionObj.gameObject.tag == "Pizza")
-            {
-                collidingSlice = collisionObj.gameObject;
-
-                if (OnGrabEnter != null)
-                    OnGrabEnter();
-            }
+            
         }
     }
 
@@ -102,16 +106,19 @@ public class GrabScript : MonoBehaviour
     {
         if (isTentacleActive)
         {
-            if (collisionObj.gameObject.tag == "Platter")
+            if (collisionObj.gameObject.tag == "Pizza")
             {
-                collidingPlatter = null;
+                //DEBUG
+                //collidingSlice.GetComponent<SpriteRenderer>().color = Color.white;
+                collidingSlice = null;
+                
 
                 if (OnGrabEnter != null)
                     OnGrabEnter();
             }
-            if (collisionObj.gameObject.tag == "Pizza")
+            if (collisionObj.gameObject.tag == "Platter")
             {
-                collidingSlice = null;
+                collidingPlatter = null;
 
                 if (OnGrabEnter != null)
                     OnGrabEnter();
