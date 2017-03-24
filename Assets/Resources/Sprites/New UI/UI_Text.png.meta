@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: f92f5a0d64cd23649a77f9811dd8454c
-timeCreated: 1489951284
+timeCreated: 1490386952
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -32,6 +32,7 @@ TextureImporter:
     21300050: Text_Time
     21300052: Text_PlayerReady
     21300054: Text_Colon
+    21300056: Text_Controls
   serializedVersion: 4
   mipmaps:
     mipMapMode: 0
@@ -479,6 +480,19 @@ TextureImporter:
         x: 141
         y: 96
         width: 5
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: Text_Controls
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 96
+        width: 127
         height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
