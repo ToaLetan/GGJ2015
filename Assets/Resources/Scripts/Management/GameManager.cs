@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     private const float ICON_OFFSET = 22.0f;
     private const float INTRO_TIME = 1.0f;
     private const float SLIDER_MOVE_SPEED = 15.0f;
+    private const float SLIDER_DESTINATION_X = -30.0f;
 
     private const int NUM_OF_PLAYERS = 2; //This is a 2-player game.
 
@@ -42,6 +43,8 @@ public class GameManager : MonoBehaviour
     private SpriteRenderer[] slicesHundredsRenderers = new SpriteRenderer[2];
 
     private GameState currentGameState = GameState.JoinScreen;
+
+    private GameObject sliderText = null;
 
     private Vector3 sliderDestination = Vector3.zero;
     private Vector3 sliderStartPos = Vector3.zero;
@@ -126,6 +129,8 @@ public class GameManager : MonoBehaviour
             slicesTensRenderers[1] = player2SlicesCounter.transform.FindChild("Slices_Tens").GetComponent<SpriteRenderer>();
             slicesHundredsRenderers[1] = player2SlicesCounter.transform.FindChild("Slices_Hundreds").GetComponent<SpriteRenderer>();
         }
+
+        sliderText = sliderUI.transform.FindChild("Slider_TentacleEnd").transform.FindChild("Slider_Text").gameObject;
 
         currentRound = 1; //Obviously we start at the first round.
 
@@ -265,17 +270,15 @@ public class GameManager : MonoBehaviour
 
     private void PlayRoundIntro()
     {
-        GameObject sliderText = sliderUI.transform.FindChild("Slider_Text").gameObject;
-
         if (introPhase < 2)
         {
             switch (introPhase)
             {
                 case 0:
-                    sliderText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Ready");
+                    sliderText.GetComponent<SpriteRenderer>().sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Text_Ready");
                     break;
                 case 1:
-                    sliderText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Eat");
+                    sliderText.GetComponent<SpriteRenderer>().sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Text_Eat");
                     break;
                 default:
                     break;
@@ -303,7 +306,11 @@ public class GameManager : MonoBehaviour
             {
                 Vector3 newPos = sliderUI.transform.position;
                 sliderAcceleration += 1.0f;
-                newPos.x += sliderAcceleration * SLIDER_MOVE_SPEED * Time.deltaTime;
+
+                if (newPos.x + sliderAcceleration * SLIDER_MOVE_SPEED * Time.deltaTime > sliderDestination.x)
+                    newPos.x += sliderDestination.x - newPos.x;
+                else
+                    newPos.x += sliderAcceleration * SLIDER_MOVE_SPEED * Time.deltaTime;
 
                 sliderUI.transform.position = newPos;
             }
@@ -319,7 +326,11 @@ public class GameManager : MonoBehaviour
             {
                 Vector3 newPos = sliderUI.transform.position;
                 sliderAcceleration += 1.0f;
-                newPos.x += sliderAcceleration * SLIDER_MOVE_SPEED * Time.deltaTime * -1;
+
+                if (newPos.x + sliderAcceleration * SLIDER_MOVE_SPEED * Time.deltaTime * -1 < sliderDestination.x)
+                    newPos.x += sliderDestination.x - newPos.x;
+                else
+                    newPos.x += sliderAcceleration * SLIDER_MOVE_SPEED * Time.deltaTime * -1;
 
                 sliderUI.transform.position = newPos;
             }
@@ -339,12 +350,11 @@ public class GameManager : MonoBehaviour
 
         roundIntroTimer.OnTimerComplete += PlayRoundIntro;
 
-        sliderDestination = new Vector3(-74, 92, 0);
+        sliderDestination.x = SLIDER_DESTINATION_X;
         isSliderAtDestination = false;
         introPhase = 0;
 
-        GameObject sliderText = sliderUI.transform.FindChild("Slider_Text").gameObject;
-        sliderText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Ready");
+        sliderText.GetComponent<SpriteRenderer>().sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Text_Ready");
     }
 
     private void ResetPlayers() //Clear any held slices on players, reset prefabs
@@ -368,42 +378,41 @@ public class GameManager : MonoBehaviour
     private void DisplayWinner()
     {
         //Reset the slider so it moves.
-        sliderDestination = new Vector3(74, 92, 0);
+        sliderDestination.x = SLIDER_DESTINATION_X;
         isSliderAtDestination = false;
 
         //Change the slider text to say "Player", move it over to leave some room.
-        GameObject sliderText = sliderUI.transform.FindChild("Slider_Text").gameObject;
-        sliderText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Player");
+        sliderText.GetComponent<SpriteRenderer>().sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Text_Player");
         Vector3 initialSliderTextPos = sliderText.transform.position; //Saving this in case of a tie, don't have to move the text.
-        sliderText.transform.position += new Vector3(-ICON_OFFSET * 2, 0, 0);
+        sliderText.transform.localPosition = new Vector3(-72, 0, 0);
 
         //Prepare the position for the player num.
         Vector3 winnerNumPos = sliderText.transform.position;
-        winnerNumPos.x += ICON_OFFSET * 1.75f;
+        winnerNumPos.x += ICON_OFFSET * 2.0f;
 
         //Prepare the display for the winner's number.
         GameObject winnerNumText = GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/Winner_Num"), winnerNumPos, Quaternion.identity) as GameObject;
-        winnerNumText.transform.parent = sliderUI.transform;
+        winnerNumText.transform.parent = sliderText.transform;
 
         //Prepare the position for the "wins!" text.
         Vector3 winGameText = winnerNumText.transform.position;
-        winGameText.x += ICON_OFFSET * 1.75f;
+        winGameText.x += ICON_OFFSET * 2.0f;
 
         //Create the "wins!" text.
         GameObject winsText = GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/Text_Winner"), winGameText, Quaternion.identity) as GameObject;
-        winsText.transform.parent = sliderUI.transform;
+        winsText.transform.parent = sliderText.transform;
 
         if (playerWins[0] > playerWins[1] ) //Player 1 won the game
         {
-            winnerNumText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Number_1");
+            winnerNumText.GetComponent<SpriteRenderer>().sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Num_1");
         }
         else if (playerWins[0] < playerWins[1]) //Player 2 won the game
         {
-            winnerNumText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Number_2");
+            winnerNumText.GetComponent<SpriteRenderer>().sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Num_2");
         }
         else if (playerWins[0] == playerWins[1]) //Holy shit it's a tie!!!
         {
-            sliderText.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/UI/Text_Tied");
+            sliderText.GetComponent<SpriteRenderer>().sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Text_Tied");
             sliderText.transform.position = initialSliderTextPos; //Move the text back, we don't need a lot of room.
 
             //Destroy the stuff we don't need.

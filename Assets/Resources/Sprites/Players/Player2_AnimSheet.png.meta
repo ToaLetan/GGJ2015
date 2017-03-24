@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 4e8c2972e24e11848bc97c184b8b8278
-timeCreated: 1490160144
+timeCreated: 1490323340
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -100,8 +100,8 @@ TextureImporter:
       name: Player2_AnimSheet_0
       rect:
         serializedVersion: 2
-        x: 1
-        y: 1
+        x: 2
+        y: 2
         width: 60
         height: 67
       alignment: 0
@@ -113,8 +113,8 @@ TextureImporter:
       name: Player2_AnimSheet_1
       rect:
         serializedVersion: 2
-        x: 63
-        y: 1
+        x: 66
+        y: 2
         width: 60
         height: 67
       alignment: 0
@@ -126,8 +126,8 @@ TextureImporter:
       name: Player2_AnimSheet_2
       rect:
         serializedVersion: 2
-        x: 125
-        y: 1
+        x: 130
+        y: 2
         width: 60
         height: 67
       alignment: 0

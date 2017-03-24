@@ -4,8 +4,9 @@ using System.Collections.Generic;
 
 public class PlayerScript : MonoBehaviour 
 {
-    private const float MOVE_SPEED = 1.5f;
-    private const float ROTATE_SPEED = 1.0f;
+    private const float MOVE_SPEED = 1.5f; //How much force to add to the tentacles to move
+    private const float ROTATE_SPEED = 1.0f; //How much torque to add to the platter when rotating
+    private const float MAX_ROTATION_SPEED_PER_SEC = 180.0f; //The max speed of the platter rotation
 
     public int PlayerNum = 0;
 
@@ -121,7 +122,6 @@ public class PlayerScript : MonoBehaviour
                 {
                     for (int i = 0; i < activeTentacleGrabbers.Count; i++)
                         activeTentacleGrabbersRigidbodies[i].AddForce(new Vector2(thumbstickPosition.x, thumbstickPosition.y) * MOVE_SPEED * Time.deltaTime);
-                    //activeTentacleGrabbers[i].transform.position += new Vector3(thumbstickPosition.x, thumbstickPosition.y, 0) * MOVE_SPEED * Time.deltaTime;
                 }
                 else
                 {
@@ -173,7 +173,6 @@ public class PlayerScript : MonoBehaviour
                     Grab();
 
                     //Highlight RT
-                    //triggerPromptRenderer.sprite = Resources.Load<Sprite>("Sprites/UI/Active_Trigger_Right");
                     triggerPromptRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_ButtonPrompts", "Active_Trigger_Right");
                 }
             }
@@ -183,10 +182,6 @@ public class PlayerScript : MonoBehaviour
                 {
                     if (activeTentaclesScripts[i].IsHoldingPlatter == true)
                         activeTentaclesScripts[i].IsHoldingPlatter = false;
-
-                    //Highlight RT
-                    //triggerPromptRenderer.sprite = Resources.Load<Sprite>("Sprites/UI/Trigger_Right");
-                    
                 }
             }
             triggerPromptRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_ButtonPrompts", "Trigger_Right");
@@ -215,7 +210,6 @@ public class PlayerScript : MonoBehaviour
                     if (keysHeld.Contains(inputManager.KeybindArray[playerInputID].rightKey.ToString()))
                         directionX += 1;
 
-                    //tentacleGrabber.transform.localPosition += new Vector3(directionX, directionY, 0) * MOVE_SPEED * Time.deltaTime;
                     activeTentacleGrabbersRigidbodies[i].AddForce(new Vector2(directionX, directionY) * MOVE_SPEED * Time.deltaTime);
                 }
                 else
@@ -228,7 +222,6 @@ public class PlayerScript : MonoBehaviour
                         Grab();
 
                         //Highlight prompt
-                        //triggerPromptRenderer.sprite = Resources.Load<Sprite>("Sprites/UI/Active_Key_RT" + (playerInputID+ 1) );
                         triggerPromptRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_ButtonPrompts", "Active_Key_RT" + (playerInputID + 1));
                     }
                 }
@@ -279,7 +272,6 @@ public class PlayerScript : MonoBehaviour
                 }
 
                 //Highlight RT
-                // triggerPromptRenderer.sprite = Resources.Load<Sprite>("Sprites/UI/Key_RT" + (playerInputID + 1));
                 triggerPromptRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_ButtonPrompts", "Key_RT" + (playerInputID + 1));
             }
         }
@@ -328,21 +320,16 @@ public class PlayerScript : MonoBehaviour
             //Highlight the selected button prompt.
             ToggleHighlightButtonPrompt(tentacleButton, true);
         }
-
-        //Get the active tentacle, the end of the tentacle, and set its script to be active.
-        /*activeTentacles = gameObject.transform.FindChild("Tentacle_" + tentacleButton).gameObject;
-        tentacleGrabber = activeTentacles.transform.FindChild("Tentacle_Grabber").gameObject;
-        tentacleGrabberRigidbody = tentacleGrabber.GetComponent<Rigidbody2D>();
-        activeTentaclesScripts = tentacleGrabber.GetComponent<GrabScript>();
-
-        activeTentaclesScripts.IsTentacleActive = true;
-        activeTentaclesScripts.OnGrabEnter += HighlightTriggerPrompt;*/
     }
 
     private void Grab()
     {
         for (int i = 0; i < activeTentacles.Count; i++)
         {
+
+            //Check for any tentacles that got locked somehow, unlock them
+            if (activeTentaclesScripts[i].IsHoldingPizza && activeTentacleGrabbers[i].transform.childCount == 0)
+                activeTentaclesScripts[i].IsHoldingPizza = false;
 
             if (activeTentaclesScripts[i].IsHoldingPizza == false && activeTentaclesScripts[i].IsHoldingPlatter == false
                             && activeTentaclesScripts[i].CollidingSlice != null)
@@ -351,10 +338,6 @@ public class PlayerScript : MonoBehaviour
 
                 if (activeTentaclesScripts[i].CollidingSlice.tag == "Pizza") //Grab the slice
                 {
-                    //Disable physics on the slice.
-                    //GameObject.Destroy(tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<Rigidbody2D>());
-                    //tentacleGrabber.GetComponent<GrabScript>().CollidingSlice.GetComponent<EdgeCollider2D>().isTrigger = true;
-
                     //If grabbing a slice from another tentacle, make sure to reset the tentacle's bools
                     if (activeTentaclesScripts[i].CollidingSlice.transform.parent.tag == "Tentacle")
                     {
@@ -370,13 +353,13 @@ public class PlayerScript : MonoBehaviour
             {
                 if (activeTentaclesScripts[i].CollidingPlatter.tag == "Platter") //Spin the platter
                 {
+                    GameObject platterObj = activeTentaclesScripts[i].CollidingPlatter;
+                    Rigidbody2D platterRigidbody = platterObj.GetComponent<Rigidbody2D>();
+
                     activeTentaclesScripts[i].IsHoldingPlatter = true;
 
-                    Quaternion platterRotation = activeTentaclesScripts[i].CollidingPlatter.transform.localRotation;
-
-                    platterRotation.eulerAngles += new Vector3(0, 0, activeTentacleGrabbers[i].transform.localRotation.eulerAngles.z - 180) * ROTATE_SPEED * Time.deltaTime;
-
-                    activeTentaclesScripts[i].CollidingPlatter.transform.localRotation = platterRotation;
+                    if (platterRigidbody.angularVelocity < MAX_ROTATION_SPEED_PER_SEC)
+                        platterRigidbody.AddTorque(ROTATE_SPEED);
                 }
             }
         }
@@ -492,7 +475,6 @@ public class PlayerScript : MonoBehaviour
             inputManager.Key_Released += ProcessReleasedKeys;
 
             //Swap all Prompts to display Keys
-            //triggerPromptRenderer.sprite = Resources.Load<Sprite>("Sprites/UI/Key_RT" + (playerInputID + 1));
             triggerPromptRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_ButtonPrompts", "Key_RT" + (playerInputID + 1));
 
             //Loop through the other buttons and de-highlight any that were previously highlighted
