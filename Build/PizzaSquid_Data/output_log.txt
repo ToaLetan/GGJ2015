@@ -1,10 +1,11 @@
-Initialize engine version: 4.6.2f1 (bd99309c2ad7)
+Initialize engine version: 5.5.1f1 (88d00a7498cd)
 GfxDevice: creating device client; threaded=1
 Direct3D:
     Version:  Direct3D 11.0 [level 11.0]
     Renderer: AMD Radeon HD 5800 Series (ID=0x6898)
     Vendor:   ATI
-    VRAM:     1009 MB
+    VRAM:     1010 MB
+    Driver:   15.200.1062.1004
 Begin MonoManager ReloadAssembly
 Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.dll (this message is harmless)
 Loading E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.dll into Unity Child Domain
@@ -12,8 +13,17 @@ Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\Assembly-C
 Loading E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
 Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.UI.dll (this message is harmless)
 Loading E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
-- Completed reload, in  0.068 seconds
+Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll (this message is harmless)
+Loading E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
+- Completed reload, in  0.046 seconds
+Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\System.dll (this message is harmless)
 desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
-Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\System.Core.dll (this message is harmless)
+<RI> Initialized touch support.
+UnloadTime: 1.832203 ms
+Setting up 1 worker threads for Enlighten.
+  Thread -> id: 1cbc -> priority: 1 

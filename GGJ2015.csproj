@@ -95,7 +95,6 @@
     <Compile Include="Assets\Resources\Scripts\Player\PlayerScript.cs" />
     <Compile Include="Assets\Resources\Scripts\Player\TentacleModifier.cs" />
     <Compile Include="Assets\Resources\Scripts\Tools\AnimationObject.cs" />
-    <Compile Include="Assets\Resources\Scripts\Tools\SpriteImportProcessor.cs" />
     <Compile Include="Assets\Resources\Scripts\Tools\SpriteSheetLoader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
