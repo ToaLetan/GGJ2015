@@ -28,8 +28,8 @@ public class PauseMenuScript : MonoBehaviour
         set { menuOwnerInputID = value; }
     }
 
-	// Use this for initialization
-	void Start () 
+    // Use this for initialization
+    void Start () 
     {
         gameManager = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GameManager>();
 
@@ -58,33 +58,36 @@ public class PauseMenuScript : MonoBehaviour
 
     public void TogglePauseMenu(bool showMenu)
     {
-        if (showMenu == false) //Hide the menu
+        if (gameManager.CurrentGameState != GameManager.GameState.Intro)
         {
-            gameObject.GetComponent<SpriteRenderer>().enabled = false;
-
-            for (int i = 0; i < gameObject.transform.childCount; i++)
+            if (showMenu == false) //Hide the menu
             {
-                if (gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>() != null)
+                gameObject.GetComponent<SpriteRenderer>().enabled = false;
+
+                for (int i = 0; i < gameObject.transform.childCount; i++)
                 {
-                    gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = false;
+                    if (gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>() != null)
+                    {
+                        gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = false;
+                    }
+                }
+
+                if (onControlsScreen)
+                    ToggleControlsScreenDisplay(false);
+            }
+            else if (showMenu == true)//Show the menu
+            {
+                gameObject.GetComponent<SpriteRenderer>().enabled = true;
+
+                for (int i = 0; i < gameObject.transform.childCount; i++)
+                {
+                    if (gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>() != null)
+                    {
+                        gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = true;
+                    }
                 }
             }
-
-            if (onControlsScreen)
-                ToggleControlsScreenDisplay(false);
         }
-        else if (showMenu == true)//Show the menu
-        {
-            gameObject.GetComponent<SpriteRenderer>().enabled = true;
-
-            for (int i = 0; i < gameObject.transform.childCount; i++)
-            {
-                if (gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>() != null)
-                {
-                    gameObject.transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = true;
-                }
-            }
-        }    
     }
 
     private void ProcessButtons(List<string> buttonsPressed)
@@ -206,6 +209,8 @@ public class PauseMenuScript : MonoBehaviour
             inputManager.Button_Pressed -= ProcessButtons;
             inputManager.Left_Thumbstick_Axis -= ProcessThumbstick;
         }
+
+        gameManager.GameRestart -= OnGameReset;
     }
 
     public void EstablishInput()

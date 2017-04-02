@@ -17,13 +17,19 @@ Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngin
 Loading E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
 Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll (this message is harmless)
 Loading E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
-- Completed reload, in  0.046 seconds
+- Completed reload, in  0.061 seconds
 Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: E:\Game Jams\GGJ2015\Build\PizzaSquid_Data\Managed\System.dll (this message is harmless)
 desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 1.832203 ms
+UnloadTime: 1.622267 ms
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 4.501600 ms
+
+Unloading 38 unused Assets to reduce memory usage. Loaded Objects now: 1270.
+Total: 0.552175 ms (FindLiveObjects: 0.122462 ms CreateObjectMapping: 0.075081 ms MarkObjects: 0.320735 ms  DeleteObjects: 0.032438 ms)
+
 Setting up 1 worker threads for Enlighten.
-  Thread -> id: 1cbc -> priority: 1 
+  Thread -> id: 1ec0 -> priority: 1 

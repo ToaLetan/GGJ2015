@@ -88,6 +88,8 @@ public class PlayerScript : MonoBehaviour
             triggerPromptRenderer.enabled = false;
             triggerPromptTextRenderer.enabled = false;
         }
+
+        gameManager.GameRestart += OnGameReset;
     }
 
     public void DestroyPlayer()
@@ -183,8 +185,8 @@ public class PlayerScript : MonoBehaviour
                     if (activeTentaclesScripts[i].IsHoldingPlatter == true)
                         activeTentaclesScripts[i].IsHoldingPlatter = false;
                 }
+                triggerPromptRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_ButtonPrompts", "Trigger_Right");
             }
-            triggerPromptRenderer.sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_ButtonPrompts", "Trigger_Right");
         }
     }
 

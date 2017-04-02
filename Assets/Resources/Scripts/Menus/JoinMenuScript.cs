@@ -83,20 +83,23 @@ public class JoinMenuScript : MonoBehaviour
 
     private void ProcessButtons(List<string> buttonsPressed)
     {
-        for (int i = 0; i < inputManager.ControllerArray.Length; i++)
+        if (currentPlayerIndex <= 2)
         {
-            if (buttonsPressed.Contains(inputManager.ControllerArray[i].buttonA))
+            for (int i = 0; i < inputManager.ControllerArray.Length; i++)
             {
-                if (playerJoined[currentPlayerIndex] == false && currentPlayerIndex < 2)
+                if (buttonsPressed.Contains(inputManager.ControllerArray[i].buttonA))
                 {
-                    string inputString = inputManager.ControllerArray[i].ToString() + " " + i;
-        
-                    if (gameManager.PlayerInputSources.Contains(inputString) == false)
-                        JoinPlayer(inputString);
+                    if (playerJoined[currentPlayerIndex] == false)
+                    {
+                        string inputString = inputManager.ControllerArray[i].ToString() + " " + i;
+
+                        if (gameManager.PlayerInputSources.Contains(inputString) == false)
+                            JoinPlayer(inputString);
+                    }
                 }
+                if (buttonsPressed.Contains(inputManager.ControllerArray[i].startButton) && canStartGame == true)
+                    ProceedToGameIntro();
             }
-            if (buttonsPressed.Contains(inputManager.ControllerArray[i].startButton) && canStartGame == true)
-                ProceedToGameIntro();
         }
     }
 

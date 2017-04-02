@@ -100,8 +100,8 @@ public class GameManager : MonoBehaviour
         set { isPlayingIntro = false; }
     }
 
-	// Use this for initialization
-	void Start () 
+    // Use this for initialization
+    void Start () 
     {
         inputManager = InputManager.Instance;
 
@@ -180,16 +180,19 @@ public class GameManager : MonoBehaviour
 
     public void AdjustScore(int playerNum, int scoreToAdd)
     {
-        playerScores[playerNum - 1] += scoreToAdd;
-        UpdateSlicesCounter(playerNum);
+        if (playerScores[playerNum - 1] < 999)
+        {
+            playerScores[playerNum - 1] += scoreToAdd;
+            UpdateSlicesCounter(playerNum);
+        }
     }
 
     private void UpdateSlicesCounter(int playerNum)
     {
         //Get the ones, tens, and hundreds values
-        int hundredsValue = Mathf.FloorToInt(playerScores[playerNum - 1] / 100);
-        int tensValue = Mathf.FloorToInt(playerScores[playerNum - 1] / 10);
-        int onesValue = Mathf.FloorToInt(playerScores[playerNum - 1] % 10);
+        int hundredsValue = (playerScores[playerNum - 1] / 100) % 10;
+        int tensValue = (playerScores[playerNum - 1] / 10) % 10;
+        int onesValue = (playerScores[playerNum - 1] / 1) % 10;
 
         slicesHundredsRenderers[playerNum - 1].sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Num_" + hundredsValue);
         slicesTensRenderers[playerNum - 1].sprite = SpriteSheetLoader.LoadSpriteFromSheet("Sprites/New UI/UI_Text", "Num_" + tensValue);
@@ -346,6 +349,7 @@ public class GameManager : MonoBehaviour
 
     private void ResetIntro()
     {
+        currentGameState = GameState.Intro;
         roundIntroTimer.ResetTimer(true);
 
         roundIntroTimer.OnTimerComplete += PlayRoundIntro;
@@ -423,6 +427,9 @@ public class GameManager : MonoBehaviour
 
     public void ShowHidePauseMenu(int playerInputID, bool showMenu)
     {
+        if (pauseMenu == null)
+            pauseMenu = GameObject.FindGameObjectWithTag("MainCamera").transform.FindChild("Pause Menu").gameObject;
+
         if (showMenu == true) //The menu must be shown
         {
             isGamePaused = true;
